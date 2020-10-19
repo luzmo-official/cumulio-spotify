@@ -1,0 +1,20 @@
+{
+  "name": "cumul.io-integration",
+  "version": "1.0.0",
+  "description": "Cumul.io sample integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "author": "",
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "express-jwt": "^6.0.0",
+    "jwks-rsa": "^1.8.1",
+    "cumulio": "1.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.3"
+  }
+}
