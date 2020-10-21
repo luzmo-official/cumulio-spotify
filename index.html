@@ -11,7 +11,7 @@
     integrity="sha384-BOsAfwzjNJHrJ8cZidOg56tcQWfp6y72vEJ8xQ9w6Quywb24iOsW913URv1IS4GD"
     crossorigin="anonymous"></script>
 
-  <!-- add cumul.io embed script or install & use cumulio-react, cumulio-react-native or angular lib ngx-cumulio -->
+  <!-- cumul.io embedding -->
   <script src="https://cdn-a.cumul.io/js/cumulio.min.js"></script>
 
   <link href="/css/main.css" rel="stylesheet">
@@ -64,29 +64,17 @@
       <div class="flex-fill"></div>
     </div>
     <!-- Dashboard container -->
-    <div class="main-container text-center p-lg-5">
+    <div class="main-container p-lg-5">
       <div id="navbar" class="d-flex ">
 
       </div>
-      <div class="page-title d-flex text-left font-weight-bold mb-5">
+      <div class="d-flex align-items-center mb-5">
         <img src="/images/logo_color.svg" class="menu-toggle d-inline-block d-lg-none my-3 mr-3"
           onclick="toggleMenu(true)" />
-        <div class="d-inline-block" id="page-title">Song analytics</div>
-        <!-- User name and picture --
-        <div class="mb-4">
-          <div class="d-flex">
-            <div class="mr-3">
-              <img id="user-image" class="p-1 rounded-circle bg-white border">
-            </div>
-            <div class="pt-2">
-              <h5>Welcome,</h5>
-              <p id="user-name"></p>
-            </div>
-          </div>
-          <div class="log-out-button small mr-2" onclick="logout()">
-            Log out
-          </div>
-        </div-->
+        <div id="page-title" class="flex-grow-1 font-weight-bold">Song visualized</div>
+        <div id="user-name"></div>
+        <img id="user-img" class="rounded-circle ml-3" />
+        <a id="login-btn" href="/login" class="d-none btn btn-primary">Log in</a>
       </div>
       <div class="dashboard-outer-container">
         <div id="dashboard-container"></div>

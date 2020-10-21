@@ -4,13 +4,15 @@
 
 */
 
-const user = { loggedIn: false };
-let playerStatus = { playing:false };
+let user = {};
+let spotifyParams = {};
+let playerStatus = { playing: false };
 const playLists = [];
-let currentPlaylist = { songs:[] };
+let currentPlaylist = { songs: [] };
 let currentSong = {};
 let customEventsActive = false;
 let activeDashboard = null;
+let access_token;
 let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const dashboardOptions = {
@@ -31,22 +33,8 @@ const dashboardOptions = {
 */
 
 window.onload = async () => {
+  getUserData();
   loadSongs();
-}
-
-/* 
-  
-  AUTHENTICATION
-
-*/
-
-const login = async () => {
-};
-
-const logout = () => {
-};
-
-const setUserDetails = (user) => {
 }
 
 /* 
@@ -130,7 +118,6 @@ const removeDashboard = () => {
 }
 
 const toggleCustomEventListeners = (boolean) => {
-  console.log(customEventsActive, boolean)
   if (customEventsActive && !boolean) {
     Cumulio.offCustomEvent()
   }
@@ -176,6 +163,17 @@ const getDashboardAuthorizationToken = async () => {
 
 */
 
+const getHashParams = () => {
+  const hashParams = {};
+  let e;
+  let r = /([^&;=]+)=?([^&;]*)/g;
+  let q = window.location.hash.substring(1);
+  while (e = r.exec(q)) {
+    hashParams[e[1]] = decodeURIComponent(e[2]);
+  }
+  return hashParams;
+}
+
 const setTitle = (title) => {
   document.querySelector('#page-title').innerText = title;
 }
@@ -186,12 +184,67 @@ const setActiveMenuItem = (name) => {
   document.querySelector(`#menu-list li[menu-item="${name}"]`).classList.add('active');
 }
 
+const setLoginStatus = (boolean, res) => {
+  if (boolean) {
+    document.querySelector('#login-btn').classList.add('d-none');
+    user = { ...user, ...res };
+    console.log(user)
+    document.getElementById('user-name').textContent = user.display_name;
+    if (user.images && user.images.length > 0) {
+      document.getElementById('user-img').src = user.images[0].url;
+    }
+    else {
+
+    }
+  }
+  else {
+    document.querySelector('#login-btn').classList.remove('d-none');
+  }
+}
+
 
 /* 
   
   SPOTIFY FUNCTIONS
 
 */
+
+const getUserData = () => {
+  spotifyParams = getHashParams();
+  if (!spotifyParams.access_token) {
+    return setLoginStatus(false);
+  }
+  fetch('https://api.spotify.com/v1/me', {
+    headers: { Authorization: `Bearer ${spotifyParams.access_token}`, 'Content-Type': 'application/json; charset=utf-8' }
+  })
+    .then(res => res.json())
+    .then(response => {
+      if (response.error) {
+        setLoginStatus(false);
+      }
+      else {
+        setLoginStatus(true, response);
+      }
+    })
+}
+
+const getRefreshToken = () => {
+  fetch('/refresh_token', {
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    method: 'POST',
+    body: JSON.stringify({
+      refresh_token: refresh_token
+    })
+  })
+    .then(res => res.json())
+    .then(response => {
+      access_token = response.access_token;
+      oauthPlaceholder.innerHTML = oauthTemplate({
+        access_token: access_token,
+        refresh_token: refresh_token
+      });
+    })
+}
 
 const getPlaylists = () => {
 

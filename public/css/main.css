@@ -12,6 +12,7 @@ body {
   top: 0;
   bottom: 0;
   width: 20rem;
+  height: 100%;
   z-index: 10001;
   transform: translateX(-20rem);
   transition: all .3s ease-in-out;
@@ -19,6 +20,10 @@ body {
 
 #sidebar.open {
   transform: translateX(0);
+}
+
+#user-img {
+  height: 3rem;
 }
 
 .main-container {
@@ -51,7 +56,7 @@ body {
   cursor: pointer;
 }
 
-.page-title {
+#page-title {
   opacity: 0.8;
   font-size: 2rem;
   line-height: 3rem;
