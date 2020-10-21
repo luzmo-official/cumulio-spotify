@@ -52,7 +52,7 @@ const getDashboardAuthorizationToken = async () => {
 
 // function to load the insight page
 const loadInsightsPage = async () => {
-  const authorizationToken = await getDashboardAuthorizationToken();
+  //const authorizationToken = await getDashboardAuthorizationToken();
   if (authorizationToken.id && authorizationToken.token) {
     loadDashboard(authorizationToken.id, authorizationToken.token);
     Cumulio.onCustomEvent((event) => {
@@ -83,15 +83,15 @@ function changeLanguage(language, elem) {
 // loads the user interface
 const initUI = async () => {
   const isAuthenticated = await auth0.isAuthenticated();
-  if (isAuthenticated) {
+  document.getElementById('gated-content').style.setProperty('display', 'flex', 'important');
+/*   if (isAuthenticated) {
     const user = await auth0.getUser();
     setUserDetails(user);
-    document.getElementById('gated-content').style.setProperty('display', 'flex', 'important');
     loadInsightsPage();
   }
   else {
     login();
-  }
+  } */
 };
 
 // set the user details in the UI

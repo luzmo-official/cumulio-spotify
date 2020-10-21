@@ -5,11 +5,11 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   id="svg8"
+   id="svg15"
    version="1.1"
-   viewBox="0 0 13.2 9.5">
+   viewBox="0 0 136.75 143.93">
   <metadata
-     id="metadata14">
+     id="metadata19">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -21,23 +21,39 @@
     </rdf:RDF>
   </metadata>
   <defs
-     id="defs12" />
+     id="defs9">
+    <style
+       id="style2">.cls-1{fill:url(#linear-gradient);}</style>
+    <linearGradient
+       gradientUnits="userSpaceOnUse"
+       y2="71.96"
+       x2="0"
+       y1="71.96"
+       x1="136.75"
+       id="linear-gradient">
+      <stop
+         id="stop4"
+         stop-color="#ffa448"
+         offset="0" />
+      <stop
+         id="stop6"
+         stop-color="#ff4459"
+         offset="1" />
+    </linearGradient>
+  </defs>
   <g
-     id="g6"
-     stroke-linejoin="bevel">
-    <path
-       style="fill:#ffffff;fill-opacity:0.58823532"
-       id="path2"
-       transform="matrix(.30094 0 0 .29347 -22.568 -15.595)"
-       paint-order="markers fill stroke"
-       fill="currentColor"
-       stroke-linecap="round"
-       d="M104.5 60.2l-4-6.6L90 72l-6.7-11.8H90l4-6.6H79.3l-4 6.6 14.6 25z" />
-    <path
-       style="fill:#ffffff;fill-opacity:1"
-       id="path4"
-       transform="matrix(.30094 0 0 .29347 -22.568 -15.595)"
-       fill="currentColor"
-       d="M105 85.3l-4-8 13.2-23.7 4 8z" />
+     style="fill:#18c659;fill-opacity:0"
+     data-name="Layer 2"
+     id="Layer_2">
+    <g
+       style="fill:#18c659;fill-opacity:0"
+       data-name="Layer 1"
+       id="Layer_1-2">
+      <path
+         style="fill:#18c659;fill-opacity:0"
+         id="path11"
+         d="M83.11,72,133.9,17.7a10,10,0,0,0,1.81-11.44A11.37,11.37,0,0,0,125.32,0h-48A32.61,32.61,0,0,0,53.5,10.07L3.43,63.37a12.47,12.47,0,0,0,0,17.18L53.5,133.86a32.61,32.61,0,0,0,23.77,10.07h48.05a11.36,11.36,0,0,0,10.39-6.27,10,10,0,0,0-1.81-11.43Zm-20-54a19.46,19.46,0,0,1,14.17-6h45L74.61,62.89l-5.87-6.27a39.66,39.66,0,0,0-21.15-11.7h0l-1.46-.3a39,39,0,0,0-7.34-.78ZM20.83,80.78,13,72.58a.91.91,0,0,1-.26-.62,1,1,0,0,1,.26-.62l7.79-8.19a24.25,24.25,0,0,1,17.54-7.36,25.15,25.15,0,0,1,5,.51l1.46.3h0a26.83,26.83,0,0,1,14.27,7.89l7,7.47-7,7.47a26.77,26.77,0,0,1-14.27,7.9l-1.46.3A24.53,24.53,0,0,1,20.83,80.78ZM77.27,132a19.43,19.43,0,0,1-14.17-6L38.78,100.08a39,39,0,0,0,7.35-.78l1.46-.3h0A39.64,39.64,0,0,0,68.74,87.31L74.61,81,122.29,132Z"
+         class="cls-1" />
+    </g>
   </g>
 </svg>
