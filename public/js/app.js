@@ -1,27 +1,146 @@
+/* 
+  
+  STATE
 
-// dashboard configuration for integration
-const dashboardId = '04cf04c4-c7b2-49a9-99d8-05e232244d94';
+*/
 
+const user = { loggedIn: false };
+let playerStatus = { playing:false };
+const playLists = [];
+let currentPlaylist = { songs:[] };
+let currentSong = {};
+let customEventsActive = false;
+let activeDashboard = null;
+let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
+const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const dashboardOptions = {
   dashboardId: dashboardId,
   container: '#dashboard-container',
   loader: {
-    background: '#EEF3F6',
-    spinnerColor: '#004CB7',
-    spinnerBackground: '#DCDCDC',
-    fontColor: '#000000'
+    background: '#111b31',
+    spinnerColor: '#f44069',
+    spinnerBackground: '#0d1425',
+    fontColor: '#ffffff'
   }
 }
 
-// Function to add the dashboard to the page using Cumul.io embed
-const loadDashboard = (key, token) => {
+/* 
+  
+  START
+
+*/
+
+window.onload = async () => {
+  loadSongs();
+}
+
+/* 
+  
+  AUTHENTICATION
+
+*/
+
+const login = async () => {
+};
+
+const logout = () => {
+};
+
+const setUserDetails = (user) => {
+}
+
+/* 
+  
+  NAVIGATION
+
+*/
+
+const toggleMenu = (boolean) => {
+  if (boolean) {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+  }
+  else {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+  }
+}
+
+const openPage = (title, name) => {
+  setTitle(title);
+  setActiveMenuItem(name);
+  toggleMenu(false);
+}
+
+// load the song analytics page
+const loadSongs = () => {
+  toggleCustomEventListeners(true);
+  openPage('Songs visualized', 'songs');
+  loadDashboard();
+}
+
+const loadByGenre = () => {
+  openPage('Songs by genre', 'by-genre');
+  toggleCustomEventListeners(true);
+  loadDashboard();
+}
+
+const loadMyPlaylistsVisualized = () => {
+  openPage('My playlists visualized', 'my-playlists-viz');
+  removeDashboard();
+}
+
+const loadCumulioFavorites = () => {
+  openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
+  toggleCustomEventListeners(true);
+  removeDashboard();
+}
+
+const loadCumulioPlaylist = () => {
+  openPage('Cumul.io playlist', 'cumulio-playlist');
+  removeDashboard();
+}
+
+const loadMyPlaylists = () => {
+  openPage('My Playlists', 'my-playlists');
+  removeDashboard();
+}
+
+/* 
+  
+  CUMUL.IO FUNCTIONS
+
+*/
+
+const loadDashboard = (id, key, token) => {
+  if (id) {
+    dashboardOptions.dashboardId = id;
+  }
   // use tokens if available
   if (key && token) {
     dashboardOptions.key = key;
     dashboardOptions.token = token;
   }
   // add the dashboard to the #dashboard-container element
-  Cumulio.addDashboard(dashboardOptions);
+  activeDashboard = Cumulio.addDashboard(dashboardOptions);
+}
+
+const removeDashboard = () => {
+  Cumulio.removeDashboard(activeDashboard)
+}
+
+const toggleCustomEventListeners = (boolean) => {
+  console.log(customEventsActive, boolean)
+  if (customEventsActive && !boolean) {
+    Cumulio.offCustomEvent()
+  }
+  else if (!customEventsActive && boolean) {
+    Cumulio.onCustomEvent((event) => {
+      addToPlaylist();
+      console.log(event);
+    })
+  }
+  customEventsActive = boolean;
 }
 
 // Function to retrieve the dashboard authorization token from the platform's backend
@@ -50,119 +169,58 @@ const getDashboardAuthorizationToken = async () => {
   }
 };
 
-// function to load the insight page
-const loadInsightsPage = async () => {
-  //const authorizationToken = await getDashboardAuthorizationToken();
-  if (authorizationToken.id && authorizationToken.token) {
-    loadDashboard(authorizationToken.id, authorizationToken.token);
-    Cumulio.onCustomEvent((event) => {
-      console.log(event);
-    });
-  }
+
+/* 
+  
+  HELPER FUNCTIONS
+
+*/
+
+const setTitle = (title) => {
+  document.querySelector('#page-title').innerText = title;
 }
 
-const toggleMenu = (boolean) => {
-  if (boolean) {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('overlay').classList.add('open');
-  }
-  else {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('overlay').classList.remove('open');
-  }
+const setActiveMenuItem = (name) => {
+  const listItems = document.querySelectorAll('#menu-list li');
+  listItems.forEach((el) => el.classList.remove('active'));
+  document.querySelector(`#menu-list li[menu-item="${name}"]`).classList.add('active');
 }
 
-function changeLanguage(language, elem) {
-  document.querySelectorAll('.language-btn').forEach((el) => { el.classList.remove('active'); });
-  elem.classList.add('active');
-  toggleMenu(false);
-  dashboardOptions.language = language;
-  loadDashboard();
+
+/* 
+  
+  SPOTIFY FUNCTIONS
+
+*/
+
+const getPlaylists = () => {
+
 }
 
-// loads the user interface
-const initUI = async () => {
-  const isAuthenticated = await auth0.isAuthenticated();
-  document.getElementById('gated-content').style.setProperty('display', 'flex', 'important');
-/*   if (isAuthenticated) {
-    const user = await auth0.getUser();
-    setUserDetails(user);
-    loadInsightsPage();
-  }
-  else {
-    login();
-  } */
-};
+const getSongInfo = (id) => {
 
-// set the user details in the UI
-const setUserDetails = (user) => {
-  console.log(user, namespace);
-  const userLanguage = user[namespace + 'language'];
-  if (userLanguage) {
-    document.querySelectorAll('.language-btn').forEach((el) => {
-      if (el.textContent === userLanguage) {
-        el.classList.add('active');
-      }
-      else {
-        el.classList.remove('active');
-      }
-    })
-    if (dashboardOptions) dashboardOptions.language = userLanguage;
-  }
-  document.getElementById('user-name').textContent = user[namespace + 'firstName'];
-  document.getElementById('user-image').src = '/images/' + user[namespace + 'firstName'].toLowerCase() + '.jpg';
 }
 
-// on page load
-window.onload = async () => {
-  await configureClient();
-  const isAuthenticated = await auth0.isAuthenticated();
+const playPlaylist = (id) => {
 
-  // If is logged in -> init UI
-  if (isAuthenticated) {
-    return initUI();
-  }
-
-  const query = window.location.search;
-  // If redirected from login
-  if (query.includes('code=') && query.includes('state=')) {
-    // Process the login state
-    await auth0.handleRedirectCallback();
-    // Set app state based on login
-    initUI();
-    // Use replaceState to redirect the user away and remove the querystring parameters
-    window.history.replaceState({}, document.title, '/');
-  }
-  // If not logged in not redirected
-  else {
-    initUI();
-  }
 }
 
-/* Authentication configuration */
-let auth0 = null;
-const namespace = 'https://myexampleapp/';
-const fetchAuthConfig = () => fetch('/auth_config.json');
-const configureClient = async () => {
-  const response = await fetchAuthConfig();
-  const config = await response.json();
-  auth0 = await createAuth0Client({
-    domain: config.domain,
-    client_id: config.clientId,
-    audience: config.audience
-  });
-};
+const playSong = (id) => {
 
-// login function
-const login = async () => {
-  await auth0.loginWithRedirect({
-    redirect_uri: window.location.origin
-  });
-};
+}
 
-// logout function
-const logout = () => {
-  auth0.logout({
-    returnTo: window.location.origin
-  });
-};
+const pauseSong = (id) => {
+
+}
+
+const nextSong = (id) => {
+
+}
+
+const previousSong = (id) => {
+
+}
+
+const addToPlaylist = (ids, playlistId) => {
+  playlistModal.show();
+}
