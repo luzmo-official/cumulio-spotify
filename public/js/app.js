@@ -111,6 +111,10 @@ const loadMyPlaylists = async () => {
   });
 }
 
+const selectPlaylist = (id) => {
+
+}
+
 /* 
   
   CUMUL.IO FUNCTIONS
@@ -217,6 +221,10 @@ const setLoginStatus = (boolean, res) => {
   else {
     document.querySelector('#login-btn').classList.remove('d-none');
   }
+}
+
+const getSongUri = (songName) => {
+  // fetch(`song_uri?name=${songName}`)
 }
 
 
