@@ -1,6 +1,7 @@
 require('dotenv').load();
 const express = require('express');
 const request = require('request');
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
@@ -32,7 +33,8 @@ const client = new Cumulio({
 app
   .use(express.static(join(__dirname, 'public')))
   .use(cors())
-  .use(cookieParser());
+  .use(cookieParser())
+  .use(bodyParser.json());
 
 app.get('/login', function (req, res) {
   const state = generateRandomString(16);
@@ -49,9 +51,10 @@ app.get('/login', function (req, res) {
     }));
 });
 
-app.get('/refresh_token', function (req, res) {
+app.post('/refresh_token', function (req, res) {
   // requesting access token from refresh token
-  const refresh_token = req.query.refresh_token;
+  const refresh_token = req.body.refresh_token;
+  // console.log(req.body);
   const authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: { 'Authorization': 'Basic ' + (new Buffer(process.env.SPOTIFY_CLIENT_ID + ':' + process.env.SPOTIFY_CLIENT_SECRET).toString('base64')) },
@@ -62,9 +65,15 @@ app.get('/refresh_token', function (req, res) {
     json: true
   };
 
+  console.log(authOptions);
+
   request.post(authOptions, function (error, response, body) {
+    console.log('request')
+    if(error) console.log(error);
+    // console.log(response);
     if (!error && response.statusCode === 200) {
       const access_token = body.access_token;
+      console.log(access_token);
       res.send({
         'access_token': access_token
       });
