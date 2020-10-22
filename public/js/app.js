@@ -64,13 +64,13 @@ const openPage = (title, name) => {
 const loadSongs = () => {
   toggleCustomEventListeners(true);
   openPage('Songs visualized', 'songs');
-  loadDashboard();
+  loadDashboard('8edf0005-6493-48e1-9689-5740a1829cdd');
 }
 
 const loadByGenre = () => {
   openPage('Songs by genre', 'by-genre');
   toggleCustomEventListeners(true);
-  loadDashboard();
+  loadDashboard('4e745750-c474-4439-8374-b9baf7c1d894');
 }
 
 const loadMyPlaylistsVisualized = () => {
