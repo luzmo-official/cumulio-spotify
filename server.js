@@ -170,7 +170,8 @@ function get_audio_features(track){
     }, function(error, features) {
       if (error)
         return res.status(500).end('Internal Server Error');
-      resolve([track.name,  track.id, track.album.artists[0].name, track.album.release_date, features.body.danceability, features.body.energy ,features.body.acousticness , features.body.tempo]);
+
+      resolve([track.name,  track.id, track.album.artists[0].name, new Date(track.album.release_date).toISOString(), features.body.danceability, features.body.energy ,features.body.acousticness , features.body.tempo]);
     });
   })
 }
