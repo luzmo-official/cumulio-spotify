@@ -13,6 +13,7 @@ let currentSong = {};
 let customEventsActive = false;
 let activeDashboard = null;
 let access_token;
+// let refresh_token;
 let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const dashboardOptions = {
@@ -64,13 +65,13 @@ const openPage = (title, name) => {
 const loadSongs = () => {
   toggleCustomEventListeners(true);
   openPage('Songs visualized', 'songs');
-  loadDashboard();
+  loadDashboard('8edf0005-6493-48e1-9689-5740a1829cdd');
 }
 
 const loadByGenre = () => {
   openPage('Songs by genre', 'by-genre');
   toggleCustomEventListeners(true);
-  loadDashboard();
+  loadDashboard('4e745750-c474-4439-8374-b9baf7c1d894');
 }
 
 const loadMyPlaylistsVisualized = () => {
@@ -89,9 +90,29 @@ const loadCumulioPlaylist = () => {
   removeDashboard();
 }
 
-const loadMyPlaylists = () => {
+const loadMyPlaylists = async () => {
   openPage('My Playlists', 'my-playlists');
   removeDashboard();
+  let playlists = await getPlaylists();
+  let playlistsDiv = document.querySelector('#playlists-list');
+  playlistsDiv.innerHTML = '';
+  playlists.forEach(playlist => {
+    let div = document.createElement('div');
+    div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
+    div.onclick = selectPlaylist(playlist.id);
+    div.innerHTML = `
+    <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
+    <div class="card-body">
+      <h5 class="card-title">${playlist.name}</h2>
+      <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
+    </div>
+    `
+    playlistsDiv.append(div);
+  });
+}
+
+const selectPlaylist = (id) => {
+
 }
 
 /* 
@@ -202,6 +223,10 @@ const setLoginStatus = (boolean, res) => {
   }
 }
 
+const getSongUri = (songName) => {
+  // fetch(`song_uri?name=${songName}`)
+}
+
 
 /* 
   
@@ -214,10 +239,7 @@ const getUserData = () => {
   if (!spotifyParams.access_token) {
     return setLoginStatus(false);
   }
-  fetch('https://api.spotify.com/v1/me', {
-    headers: { Authorization: `Bearer ${spotifyParams.access_token}`, 'Content-Type': 'application/json; charset=utf-8' }
-  })
-    .then(res => res.json())
+  makeSpotifyRequest('https://api.spotify.com/v1/me')
     .then(response => {
       if (response.error) {
         setLoginStatus(false);
@@ -225,11 +247,12 @@ const getUserData = () => {
       else {
         setLoginStatus(true, response);
       }
-    })
+    });
 }
 
 const getRefreshToken = () => {
-  fetch('/refresh_token', {
+  refresh_token = getHashParams().refresh_token;
+  return fetch(`/refresh_token`, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
     method: 'POST',
     body: JSON.stringify({
@@ -239,27 +262,41 @@ const getRefreshToken = () => {
     .then(res => res.json())
     .then(response => {
       access_token = response.access_token;
-      oauthPlaceholder.innerHTML = oauthTemplate({
-        access_token: access_token,
-        refresh_token: refresh_token
-      });
+      // oauthPlaceholder.innerHTML = oauthTemplate({
+      //   access_token: access_token,
+      //   refresh_token: refresh_token
+      // });
     })
 }
 
 const getPlaylists = () => {
-
+  return makeSpotifyRequest(`https://api.spotify.com/v1/users/${user.id}/playlists`)
+    .then(response => {
+      return response.items.map(item => {
+        return {
+          image: item.images.find(img => img.height === 300 || img.height > 300),
+          name: item.name,
+          tracks: item.tracks,
+          uri: item.uri,
+          id: item.id
+        }
+      });
+    });
 }
 
 const getSongInfo = (id) => {
-
+  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`)
+    .then(response => console.log(response));
 }
 
 const playPlaylist = (id) => {
-
+  return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${id}`)
+    .then(response => console.log(response));
 }
 
 const playSong = (id) => {
-
+  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`)
+    .then(response => console.log(response));
 }
 
 const pauseSong = (id) => {
@@ -272,6 +309,25 @@ const nextSong = (id) => {
 
 const previousSong = (id) => {
 
+}
+
+const makeSpotifyRequest = async (url) => {
+  if (!access_token) access_token = spotifyParams.access_token;
+  try {
+    let res;
+    do {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json; charset=utf-8' }
+      });
+      if (res.status === 401) await getRefreshToken();
+    }
+    while (res.status === 401)
+    
+    return await res.json();
+  }
+  catch (err) {
+    console.log(err);
+  }
 }
 
 const addToPlaylist = (ids, playlistId) => {

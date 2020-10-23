@@ -21,9 +21,9 @@
 
 <body>
   <div class="d-flex align-items-stretch w-100 h-100">
-    <div id="sidebar" class="d-flex flex-column h-100 text-white py-4">
+    <div id="sidebar" class="d-flex flex-column h-100 text-white">
       <!-- Company logo and name -->
-      <div class="company-logo px-5 py-3 mb-5 w-100">
+      <div class="company-logo px-5 py-3 mb-5 mt-4 w-100">
         <img src="/images/logo_with_text.svg" onclick="toggleMenu(false)" />
       </div>
       <!-- menu list-->
@@ -62,6 +62,12 @@
         </ul>
       </div>
       <div class="flex-fill"></div>
+      <div class="powered-by text-center p-3">
+        <a target="_blank" href="https://www.cumul.io/" class="d-block">
+          <div class="mb-2">Powered by</div>
+          <img src="images/main_cumulio_logo_with_text.svg"/>
+        </a>
+      </div>
     </div>
     <!-- Dashboard container -->
     <div class="main-container p-lg-5">
@@ -75,6 +81,12 @@
         <div id="user-name"></div>
         <img id="user-img" class="rounded-circle ml-3" />
         <a id="login-btn" href="/login" class="d-none btn btn-primary">Log in</a>
+      </div>
+      <!-- Playlist selector -->
+      <div class="mb-5">
+        <div id="playlists-list" class="d-flex align-items-center flex-wrap">
+          <div class="clearfix"></div>
+        </div>
       </div>
       <div class="dashboard-outer-container">
         <div id="dashboard-container"></div>

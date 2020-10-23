@@ -29,7 +29,7 @@ body {
 .main-container {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
   width: 100%;
 }
 
@@ -172,6 +172,46 @@ body {
   background-color: white;
 }
 
+.powered-by {
+  border-top: 0.0625rem solid rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.0625rem;
+  line-height: 1.5rem;
+}
+.powered-by a {
+  color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+}
+.powered-by img {
+  height: 1.5rem;
+}
+
+.playlist-card {
+  flex-basis: 24%;
+  height: 320px;
+}
+
+.playlists-list::after {
+  content: '';
+  flex-grow: 1;
+}
+
+.card-img-top {
+  height: 65% !important;
+  object-fit: cover !important;
+}
+
+.card {
+  background-color: #253450;
+}
+
+.card:hover {
+  background-color: #313d54;
+  cursor: pointer;
+}
+
 /* Media queries */
 @media (min-width: 992px) {
   #sidebar {
@@ -190,7 +230,7 @@ body {
     width: calc(100% - 20rem);
     flex-direction: column;
     align-items: stretch;
-    overflow: hidden;
+    overflow: auto;
   }
 
   #overlay {
