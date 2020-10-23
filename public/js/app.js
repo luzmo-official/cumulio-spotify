@@ -63,6 +63,7 @@ const openPage = (title, name) => {
 
 // load the song analytics page
 const loadSongs = () => {
+  console.log("trying to load default page");
   toggleCustomEventListeners(true);
   openPage('Songs visualized', 'songs');
   loadDashboard('8edf0005-6493-48e1-9689-5740a1829cdd');
@@ -83,6 +84,7 @@ const loadCumulioFavorites = () => {
   openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
   toggleCustomEventListeners(true);
   removeDashboard();
+  loadDashboard('12c7c734-562e-4f8f-9500-16dc59c38adc');
 }
 
 const loadCumulioPlaylist = () => {

@@ -152,7 +152,7 @@ plugin_app.get('/datasets', (req, res) => {
   const datasets = [
     {
         id: 'Playlist 34',
-        name: {en: 'Playlist 34 Profile'},
+        name: {en: 'cumul.io Spotify Playlist'},
         description: {en: 'Real-time air quality data for select cities'},
         columns: [
                 {id: 'song_name', name: {en: 'Song Name'}, type: 'hierarchy'},
