@@ -12,7 +12,7 @@ const app = express();
 const Cumulio = require('cumulio');
 const dashboardId = '04cf04c4-c7b2-49a9-99d8-05e232244d94';
 const redirect = 'http://localhost:3000/callback';
-const scopes = 'user-read-private user-read-email';
+const scopes = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-public';
 
 const generateRandomString = function (length) {
   let text = '';
