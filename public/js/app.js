@@ -13,6 +13,9 @@ let currentSong = {};
 let customEventsActive = false;
 let activeDashboard = null;
 let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
+let dashboards = {
+  playlist: '9dfefcf3-0340-4fc6-9f82-74719ad8e8e2'
+}
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const dashboardOptions = {
   dashboardId: dashboardId,
@@ -99,7 +102,7 @@ const loadMyPlaylists = async () => {
   playlists.forEach(playlist => {
     let div = document.createElement('div');
     div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
-    div.onclick = selectPlaylist(playlist.id);
+    div.onclick = () => {selectPlaylist(playlist.id)};
     div.innerHTML = `
     <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
     <div class="card-body">
@@ -111,8 +114,14 @@ const loadMyPlaylists = async () => {
   });
 }
 
-const selectPlaylist = (id) => {
+const selectPlaylist = async (id) => {
+  let token = await getDashboardAuthorizationToken({playlist_id: id});
+  showPlaylistDashboard(token);
+}
 
+const showPlaylistDashboard = async (token) => {
+  removePlaylists();
+  loadDashboard(dashboards['playlist'], token.id, token.token);
 }
 
 /* 
@@ -152,18 +161,27 @@ const toggleCustomEventListeners = (boolean) => {
 }
 
 // Function to retrieve the dashboard authorization token from the platform's backend
-const getDashboardAuthorizationToken = async () => {
+const getDashboardAuthorizationToken = async (metadata) => {
   try {
     // Get the platform access credentials from the current logged in user
-    const accessCredentials = await auth0.getTokenSilently();
+    // const accessCredentials = await auth0.getTokenSilently();
+
+    let body = {
+      access_token: spotifyParams.access_token,
+    };
+    if (metadata && typeof metadata === 'object') {
+      Object.keys(metadata).forEach(key => {
+        body[key] = metadata[key];
+      });
+    } 
     /*
       Make the call to the backend API, using the platform user access credentials in the header
       to retrieve a dashboard authorization token for this user
     */
-    const response = await fetch('/authorization', {
-      headers: new Headers({
-        Authorization: `Bearer ${accessCredentials}`
-      })
+    const response = await fetch(`/authorization`, {
+      method: 'post',
+      body: JSON.stringify(body),
+      headers: {'Content-Type': 'application/json'}
     });
 
     // Fetch the JSON result with the Cumul.io Authorization key & token
@@ -183,6 +201,11 @@ const getDashboardAuthorizationToken = async () => {
   HELPER FUNCTIONS
 
 */
+
+const removePlaylists = () => {
+  document.querySelector('#playlists-list').innerHTML = '';
+}
+
 
 const getHashParams = () => {
   const hashParams = {};
@@ -252,11 +275,13 @@ const getUserData = () => {
 
 const refreshToken = () => {
   refresh_token = spotifyParams.refresh_token;
+  let access_token = spotifyParams.access_token;
   return fetch(`/refresh_token`, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
     method: 'POST',
     body: JSON.stringify({
-      refresh_token: refresh_token
+      refresh_token: refresh_token,
+      access_token: access_token
     })
   })
     .then(res => res.json())
