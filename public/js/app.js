@@ -12,8 +12,6 @@ let currentPlaylist = { songs: [] };
 let currentSong = {};
 let customEventsActive = false;
 let activeDashboard = null;
-let access_token;
-// let refresh_token;
 let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const dashboardOptions = {
@@ -250,8 +248,8 @@ const getUserData = () => {
     });
 }
 
-const getRefreshToken = () => {
-  refresh_token = getHashParams().refresh_token;
+const refreshToken = () => {
+  refresh_token = spotifyParams.refresh_token;
   return fetch(`/refresh_token`, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
     method: 'POST',
@@ -261,27 +259,30 @@ const getRefreshToken = () => {
   })
     .then(res => res.json())
     .then(response => {
-      access_token = response.access_token;
-      // oauthPlaceholder.innerHTML = oauthTemplate({
-      //   access_token: access_token,
-      //   refresh_token: refresh_token
-      // });
+      spotifyParams.access_token = response.access_token;
     })
+    .then(() => {
+      return true;
+    });
 }
 
-const getPlaylists = () => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/users/${user.id}/playlists`)
-    .then(response => {
-      return response.items.map(item => {
-        return {
-          image: item.images.find(img => img.height === 300 || img.height > 300),
-          name: item.name,
-          tracks: item.tracks,
-          uri: item.uri,
-          id: item.id
-        }
-      });
-    });
+const getPlaylists = async () => {
+  let playlists = [];
+  let response;
+  do {
+    response = await makeSpotifyRequest(`https://api.spotify.com/v1/users/${user.id}/playlists?limit=50`);
+    playlists = playlists.concat(response.items.map(item => {
+      return {
+        image: item.images.find(img => img.height === 300 || img.height > 300 || img.url !== null),
+        name: item.name,
+        tracks: item.tracks,
+        uri: item.uri,
+        id: item.id
+      }
+    }));
+  }
+  while (!response.next === null);
+  return playlists;
 }
 
 const getSongInfo = (id) => {
@@ -312,16 +313,14 @@ const previousSong = (id) => {
 }
 
 const makeSpotifyRequest = async (url) => {
-  if (!access_token) access_token = spotifyParams.access_token;
   try {
     let res;
     do {
       res = await fetch(url, {
-        headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json; charset=utf-8' }
+        headers: { Authorization: `Bearer ${spotifyParams.access_token}`, 'Content-Type': 'application/json; charset=utf-8' }
       });
-      if (res.status === 401) await getRefreshToken();
     }
-    while (res.status === 401)
+    while (res.status === 401 && await refreshToken());
     
     return await res.json();
   }
