@@ -10,9 +10,17 @@ const { join } = require('path');
 const plugin_app = express();
 const app = express();
 const Cumulio = require('cumulio');
+
+// const plugin = require('./plugin');
+const spotify = require('./spotify');
+
 const dashboardId = '04cf04c4-c7b2-49a9-99d8-05e232244d94';
-const redirect = 'http://localhost:3000/callback';
-const scopes = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-public';
+const stateKey = 'spotify_auth_state';
+
+const client = new Cumulio({
+  api_key: process.env.CUMULIO_API_KEY,
+  api_token: process.env.CUMULIO_API_TOKEN
+});
 
 const generateRandomString = function (length) {
   let text = '';
@@ -23,13 +31,6 @@ const generateRandomString = function (length) {
   }
   return text;
 };
-
-const stateKey = 'spotify_auth_state';
-
-const client = new Cumulio({
-  api_key: process.env.CUMULIO_API_KEY,
-  api_token: process.env.CUMULIO_API_TOKEN
-});
 
 // Serve static assets from the /public folder
 app
@@ -54,46 +55,21 @@ plugin_app.use(bodyParser.json());
 app.get('/login', function (req, res) {
   const state = generateRandomString(16);
   res.cookie(stateKey, state);
-
-  // your application requests authorization
-  res.redirect('https://accounts.spotify.com/authorize?' +
-    querystring.stringify({
-      response_type: 'code',
-      client_id: process.env.SPOTIFY_CLIENT_ID,
-      scope: scopes,
-      redirect_uri: redirect,
-      state: state
-    }));
+  spotify.login(state, res);
 });
 
 app.post('/refresh_token', function (req, res) {
   // requesting access token from refresh token
-  const refresh_token = req.body.refresh_token;
-  // console.log(req.body);
-  const authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    headers: { 'Authorization': 'Basic ' + (new Buffer(process.env.SPOTIFY_CLIENT_ID + ':' + process.env.SPOTIFY_CLIENT_SECRET).toString('base64')) },
-    form: {
-      grant_type: 'refresh_token',
-      refresh_token: refresh_token
-    },
-    json: true
-  };
+  const refresh_token = req.body.refresh_token || null;
+  const access_token = req.body.access_token || null;
 
-  console.log(authOptions);
-
-  request.post(authOptions, function (error, response, body) {
-    console.log('request')
-    if(error) console.log(error);
-    // console.log(response);
-    if (!error && response.statusCode === 200) {
-      const access_token = body.access_token;
-      console.log(access_token);
-      res.send({
-        'access_token': access_token
-      });
-    }
-  });
+  spotify.refreshToken(access_token, refresh_token)
+    .then(access_token => {
+      res.status(200).json(access_token);
+    })
+    .catch(error => {
+      res.status(500).send(error);
+    });
 });
 
 app.get('/callback', function (req, res) {
@@ -108,42 +84,31 @@ app.get('/callback', function (req, res) {
   }
   else {
     res.clearCookie(stateKey);
-    const authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
-        code: code,
-        redirect_uri: redirect,
-        grant_type: 'authorization_code'
-      },
-      headers: {
-        'Authorization': 'Basic ' + (new Buffer(process.env.SPOTIFY_CLIENT_ID + ':' + process.env.SPOTIFY_CLIENT_SECRET).toString('base64'))
-      },
-      json: true
-    };
-
-    request.post(authOptions, function (error, response, body) {
-      if (!error && response.statusCode === 200) {
-        const access_token = body.access_token;
-        const refresh_token = body.refresh_token;
-        const options = {
-          url: 'https://api.spotify.com/v1/me',
-          headers: { 'Authorization': 'Bearer ' + access_token },
-          json: true
-        };
-
-        // use the access token to access the Spotify Web API
-        request.get(options, function (error, response, body) {
-          // console.log(body);
-        });
-
-        // we can also pass the token to the browser to make requests from there
-        res.redirect('/#' + querystring.stringify({ access_token: access_token, refresh_token: refresh_token }));
-      }
-      else {
+    spotify.exchangeToken(code)
+      .then(credentials => {
+        res.redirect('/#' + querystring.stringify(credentials));
+      })
+      .catch(err => {
         res.redirect('/#' + querystring.stringify({ error: 'invalid_token' }));
-      }
-    });
+      });
   }
+});
+
+app.post('/authorization', (req, res) => {
+  let metadata = req.body || {};
+  // TODO: add securables to authorization
+  client.create('authorization', {
+    type: 'temporary',
+    expiry: '24 hours',
+    inactivity_interval: '10 minutes',
+    metadata: metadata
+  })
+    .then(auth => {
+      res.status(200).json(auth);
+    })
+    .catch(err => {
+      res.status(500).json('An unexpected error occurred, please try again later.');
+    });
 });
 
 plugin_app.get('/datasets', (req, res) => {
@@ -214,5 +179,8 @@ plugin_app.options('*', (req, res) => {
 });
 
 plugin_app.listen(process.env.PORT, () => console.log(`[OK] Cumul.io plugin \'Spotify\' listening on port ${process.env.PORT}`));
+
+// plugin.init(app);
+
 // Listen on port 3000
 app.listen(3000, () => console.log('Application running on port 3000'));
