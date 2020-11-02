@@ -11,7 +11,7 @@ const plugin_app = express();
 const app = express();
 const Cumulio = require('cumulio');
 
-// const plugin = require('./plugin');
+const plugin = require('./plugin');
 const spotify = require('./spotify');
 
 const dashboardId = '04cf04c4-c7b2-49a9-99d8-05e232244d94';
@@ -112,7 +112,7 @@ app.post('/authorization', (req, res) => {
 });
 
 plugin_app.get('/datasets', (req, res) => {
-  if (req.headers['x-secret'] !== process.env.CUMULIO_SECRET)
+  if (!process.env.LOCAL && req.headers['x-secret'] !== process.env.CUMULIO_SECRET)
     return res.status(403).end('Given plugin secret does not match Cumul.io plugin secret.');
   const datasets = [
     {
@@ -150,8 +150,10 @@ function get_audio_features(track){
 }
 
 plugin_app.post('/query', (req, res) => {
-  if (req.headers['x-secret'] !== process.env.CUMULIO_SECRET)
+  if (!process.env.LOCAL && req.headers['x-secret'] !== process.env.CUMULIO_SECRET)
     return res.status(403).end('Given plugin secret does not match Cumul.io plugin secret.');
+
+    console.log(req.body);
 
   request.get({
       headers : {'Authorization': `Bearer ${process.env.OAUTH_TOKEN}`},
@@ -180,7 +182,7 @@ plugin_app.options('*', (req, res) => {
 
 plugin_app.listen(process.env.PORT, () => console.log(`[OK] Cumul.io plugin \'Spotify\' listening on port ${process.env.PORT}`));
 
-// plugin.init(app);
+plugin.init(app);
 
 // Listen on port 3000
 app.listen(3000, () => console.log('Application running on port 3000'));
