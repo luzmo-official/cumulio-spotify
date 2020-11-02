@@ -14,7 +14,7 @@ let customEventsActive = false;
 let activeDashboard = null;
 let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
 let dashboards = {
-  playlist: '9dfefcf3-0340-4fc6-9f82-74719ad8e8e2'
+  playlist: '12c7c734-562e-4f8f-9500-16dc59c38adc'
 }
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const dashboardOptions = {
@@ -81,11 +81,12 @@ const loadMyPlaylistsVisualized = () => {
   removeDashboard();
 }
 
-const loadCumulioFavorites = () => {
+const loadCumulioFavorites = async () => {
   openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
   toggleCustomEventListeners(true);
   removeDashboard();
-  loadDashboard('12c7c734-562e-4f8f-9500-16dc59c38adc');
+  let token = await getDashboardAuthorizationToken({playlist_id: '  '});
+  loadDashboard(dashboards['playlist'], token.id, token.token);
 }
 
 const loadCumulioPlaylist = () => {

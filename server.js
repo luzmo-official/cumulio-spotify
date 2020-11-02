@@ -155,7 +155,7 @@ plugin_app.post('/query', (req, res) => {
 
   request.get({
       headers : {'Authorization': `Bearer ${process.env.OAUTH_TOKEN}`},
-      uri: `https://api.spotify.com/v1/playlists/${process.env.PLAYLIST_ID}/tracks`,
+      uri: `https://api.spotify.com/v1/playlists/${req.body.user.metadata.playlist_id}/tracks`,
       gzip: true,
       json: true
   }, function(error, tracks) {
@@ -164,7 +164,7 @@ plugin_app.post('/query', (req, res) => {
 
   Promise.all(tracks.body.items.map(function(track) {
     return get_audio_features(track.track);
-  })).then(result => { console.log(result); return res.status(200).json(result)});
+  })).then(result => {return res.status(200).json(result)});
   });
   
 });
