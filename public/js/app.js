@@ -14,7 +14,8 @@ let customEventsActive = false;
 let activeDashboard = null;
 let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
 let dashboards = {
-  playlist: '12c7c734-562e-4f8f-9500-16dc59c38adc'
+  playlist: '12c7c734-562e-4f8f-9500-16dc59c38adc',
+  cumulio: 'f3555bce-a874-4924-8d08-136169855807'
 }
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const dashboardOptions = {
@@ -85,8 +86,8 @@ const loadCumulioFavorites = async () => {
   openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
   toggleCustomEventListeners(true);
   removeDashboard();
-  let token = await getDashboardAuthorizationToken({playlist_id: '  '});
-  loadDashboard(dashboards['playlist'], token.id, token.token);
+  console.log("Trying to load " + dashboards['cumulio']);
+  loadDashboard(dashboards['cumulio']);
 }
 
 const loadCumulioPlaylist = () => {
@@ -154,7 +155,13 @@ const toggleCustomEventListeners = (boolean) => {
   }
   else if (!customEventsActive && boolean) {
     Cumulio.onCustomEvent((event) => {
-      addToPlaylist();
+      if(event.data.event = "add_to_playlist") {
+        console.log("want to add to playlist");
+        addToPlaylist();
+      } else if(event.data.event = "song_info") {
+        displaySongInfo();
+        console.log("want to display song info");
+      }
       console.log(event);
     })
   }
@@ -359,4 +366,8 @@ const makeSpotifyRequest = async (url) => {
 
 const addToPlaylist = (ids, playlistId) => {
   playlistModal.show();
+}
+
+const displaySongInfo = () => {
+
 }
