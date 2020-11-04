@@ -157,7 +157,7 @@ const toggleCustomEventListeners = (boolean) => {
     Cumulio.onCustomEvent((event) => {
       if(event.data.event = "add_to_playlist") {
         console.log("want to add to playlist");
-        addToPlaylist();
+        addToPlaylist(event.data.name.id.split("&id=")[1]);
       } else if(event.data.event = "song_info") {
         displaySongInfo();
         console.log("want to display song info");
@@ -364,7 +364,8 @@ const makeSpotifyRequest = async (url) => {
   }
 }
 
-const addToPlaylist = (ids, playlistId) => {
+const addToPlaylist = (id) => {
+  console.log("Attempting to add song id: " + id);
   playlistModal.show();
 }
 
