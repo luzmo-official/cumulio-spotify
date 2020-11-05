@@ -95,16 +95,16 @@ const loadCumulioPlaylist = () => {
   removeDashboard();
 }
 
-const loadPlaylistSelector = async () => {
+const addToPlaylistSelector = async (id) => {
   let playlists = await getPlaylists();
   let playlistsDiv = document.querySelector('#addadble-playlists');
   playlistsDiv.innerHTML = '';
   console.log("Available playlists: ");
   playlists.forEach(playlist => {
-    console.log(playlist.name);
+    //console.log(playlist.name);
     let div = document.createElement('div');
     div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
-    //div.onclick = () => {selectPlaylist(playlist.id)};
+    div.onclick = () => {addToPlaylist(playlist.id, id)};
     div.innerHTML = `
     <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
     <div class="card-body">
@@ -175,10 +175,11 @@ const toggleCustomEventListeners = (boolean) => {
     Cumulio.offCustomEvent()
   }
   else if (!customEventsActive && boolean) {
-    Cumulio.onCustomEvent((event) => {
+    Cumulio.onCustomEvent(async (event) => {
       if(event.data.event = "add_to_playlist") {
         console.log("want to add to playlist");
-        addToPlaylist(event.data.name.id.split("&id=")[1]);
+        await addToPlaylistSelector(event.data.name.id.split("&id=")[1]);
+        playlistModal.show();
       } else if(event.data.event = "song_info") {
         displaySongInfo();
         console.log("want to display song info");
@@ -291,7 +292,7 @@ const getUserData = () => {
   if (!spotifyParams.access_token) {
     return setLoginStatus(false);
   }
-  makeSpotifyRequest('https://api.spotify.com/v1/me')
+  makeSpotifyRequest('https://api.spotify.com/v1/me', 'get')
     .then(response => {
       if (response.error) {
         setLoginStatus(false);
@@ -326,7 +327,7 @@ const getPlaylists = async () => {
   let playlists = [];
   let response;
   do {
-    response = await makeSpotifyRequest(`https://api.spotify.com/v1/users/${user.id}/playlists?limit=50`);
+    response = await makeSpotifyRequest(`https://api.spotify.com/v1/users/${user.id}/playlists?limit=50`, 'get');
     playlists = playlists.concat(response.items.map(item => {
       return {
         image: item.images.find(img => img.height === 300 || img.height > 300 || img.url !== null),
@@ -342,17 +343,17 @@ const getPlaylists = async () => {
 }
 
 const getSongInfo = (id) => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`)
+  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
     .then(response => console.log(response));
 }
 
 const playPlaylist = (id) => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${id}`)
+  return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${id}`, 'get')
     .then(response => console.log(response));
 }
 
 const playSong = (id) => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`)
+  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
     .then(response => console.log(response));
 }
 
@@ -368,16 +369,19 @@ const previousSong = (id) => {
 
 }
 
-const makeSpotifyRequest = async (url) => {
+const makeSpotifyRequest = async (url, method) => {
   try {
     let res;
     do {
+      console.log("URL: " + url);
       res = await fetch(url, {
+        method: method,
         headers: { Authorization: `Bearer ${spotifyParams.access_token}`, 'Content-Type': 'application/json; charset=utf-8' }
       });
     }
     while (res.status === 401 && await refreshToken());
-    
+    console.log("Status: " +res.status);
+
     return await res.json();
   }
   catch (err) {
@@ -385,10 +389,12 @@ const makeSpotifyRequest = async (url) => {
   }
 }
 
-const addToPlaylist = async (id) => {
-  console.log("Attempting to add song id: " + id);
-  await loadPlaylistSelector();
-  playlistModal.show();
+const addToPlaylist = async (playlist_id, song_id) => {
+  console.log("Attempting to add song id: " + song_id + " to " + playlist_id);
+  return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?uris=spotify%3Atrack%3A${song_id}`, 'post')
+    .then(response => console.log(response));
+  //await loadPlaylistSelector();
+  //playlistModal.show();
 }
 
 const displaySongInfo = () => {

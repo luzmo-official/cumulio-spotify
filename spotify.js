@@ -2,7 +2,7 @@ const request = require('request');
 const querystring = require('querystring');
 
 const redirect = 'http://localhost:3000/callback';
-const scopes = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-public';
+const scopes = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-public playlist-modify-private';
 
 class Spotify {
   constructor() {
