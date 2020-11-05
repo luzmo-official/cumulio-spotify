@@ -95,6 +95,27 @@ const loadCumulioPlaylist = () => {
   removeDashboard();
 }
 
+const loadPlaylistSelector = async () => {
+  let playlists = await getPlaylists();
+  let playlistsDiv = document.querySelector('#addadble-playlists');
+  playlistsDiv.innerHTML = '';
+  console.log("Available playlists: ");
+  playlists.forEach(playlist => {
+    console.log(playlist.name);
+    let div = document.createElement('div');
+    div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
+    //div.onclick = () => {selectPlaylist(playlist.id)};
+    div.innerHTML = `
+    <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
+    <div class="card-body">
+      <h5 class="card-title">${playlist.name}</h2>
+      <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
+    </div>
+    `
+    playlistsDiv.append(div);
+  });
+}
+
 const loadMyPlaylists = async () => {
   openPage('My Playlists', 'my-playlists');
   removeDashboard();
@@ -364,8 +385,9 @@ const makeSpotifyRequest = async (url) => {
   }
 }
 
-const addToPlaylist = (id) => {
+const addToPlaylist = async (id) => {
   console.log("Attempting to add song id: " + id);
+  await loadPlaylistSelector();
   playlistModal.show();
 }
 
