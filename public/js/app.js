@@ -178,12 +178,12 @@ const toggleCustomEventListeners = (boolean) => {
   }
   else if (!customEventsActive && boolean) {
     Cumulio.onCustomEvent(async (event) => {
-      console.log(event);
-      if(event.data.event = "add_to_playlist") {
+      if(event.data.event === "add_to_playlist") {
         console.log("want to add to playlist");
         await addToPlaylistSelector(event.data.name.id.split("&id=")[1]);
         playlistModal.show();
-      } else if(event.data.event = "song_info") {
+      }
+      else if(event.data.event === "song_info") {
         console.log("want to display song info");
         await displaySongInfo(event.data.name.id.split("&id=")[1]);
         songInfoModal.show();
