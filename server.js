@@ -38,11 +38,9 @@ app
   .use(cookieParser())
   .use(bodyParser.json())
   .use( (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Language', 'en');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Content-Language, Accept');
     next();
   });
 

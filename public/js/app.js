@@ -16,8 +16,10 @@ let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
 let dashboards = {
   playlist: '12c7c734-562e-4f8f-9500-16dc59c38adc',
   cumulio: 'f3555bce-a874-4924-8d08-136169855807'
-}
+};
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
+const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});
+
 const dashboardOptions = {
   dashboardId: dashboardId,
   container: '#dashboard-container',
@@ -176,15 +178,16 @@ const toggleCustomEventListeners = (boolean) => {
   }
   else if (!customEventsActive && boolean) {
     Cumulio.onCustomEvent(async (event) => {
+      console.log(event);
       if(event.data.event = "add_to_playlist") {
         console.log("want to add to playlist");
         await addToPlaylistSelector(event.data.name.id.split("&id=")[1]);
         playlistModal.show();
       } else if(event.data.event = "song_info") {
-        displaySongInfo();
         console.log("want to display song info");
+        await displaySongInfo(event.data.name.id.split("&id=")[1]);
+        songInfoModal.show();
       }
-      console.log(event);
     })
   }
   customEventsActive = boolean;
@@ -397,6 +400,6 @@ const addToPlaylist = async (playlist_id, song_id) => {
   //playlistModal.show();
 }
 
-const displaySongInfo = () => {
-
+const displaySongInfo = async (song_id) => {
+  console.log("SHOULD MAKE SPTFY REQ");
 }
