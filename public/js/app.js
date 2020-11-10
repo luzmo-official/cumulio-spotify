@@ -101,7 +101,6 @@ const addToPlaylistSelector = async (id) => {
   let playlists = await getPlaylists();
   let playlistsDiv = document.querySelector('#addadble-playlists');
   playlistsDiv.innerHTML = '';
-  console.log("Available playlists: ");
   playlists.forEach(playlist => {
     let div = document.createElement('div');
     div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
@@ -406,4 +405,12 @@ const addToPlaylist = async (playlist_id, song_id) => {
 const displaySongInfo = async (song_id) => {
   let token = await getDashboardAuthorizationToken({song_id: [song_id]});
   loadDashboard("e92c869c-2a94-406f-b18f-d691fd627d34", token.id, token.token, "#song-info-dashboard");
+  document.getElementById("add-song-button").onclick = async function() {
+    console.log("add button clicked");
+    await addToPlaylistSelector(song_id);
+    //TODO: these modals should pottentially be one? And then we only add to the internal div. 
+    //This needs to shaw the playlists modal which you can then use to add your song to
+    //Back functionality to go back to song info
+    playlistModal.show();
+  }
 }
