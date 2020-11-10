@@ -103,7 +103,6 @@ const addToPlaylistSelector = async (id) => {
   playlistsDiv.innerHTML = '';
   console.log("Available playlists: ");
   playlists.forEach(playlist => {
-    //console.log(playlist.name);
     let div = document.createElement('div');
     div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
     div.onclick = () => {addToPlaylist(playlist.id, id)};
@@ -155,15 +154,20 @@ const showPlaylistDashboard = async (token) => {
 
 */
 
-const loadDashboard = (id, key, token) => {
+const loadDashboard = (id, key, token, container) => {
   if (id) {
     dashboardOptions.dashboardId = id;
+  }
+  //use container if available
+  if (container) {
+    dashboardOptions.container = container;
   }
   // use tokens if available
   if (key && token) {
     dashboardOptions.key = key;
     dashboardOptions.token = token;
   }
+
   // add the dashboard to the #dashboard-container element
   activeDashboard = Cumulio.addDashboard(dashboardOptions);
 }
@@ -179,12 +183,10 @@ const toggleCustomEventListeners = (boolean) => {
   else if (!customEventsActive && boolean) {
     Cumulio.onCustomEvent(async (event) => {
       if(event.data.event === "add_to_playlist") {
-        console.log("want to add to playlist");
         await addToPlaylistSelector(event.data.name.id.split("&id=")[1]);
         playlistModal.show();
       }
       else if(event.data.event === "song_info") {
-        console.log("want to display song info");
         await displaySongInfo(event.data.name.id.split("&id=")[1]);
         songInfoModal.show();
       }
@@ -207,6 +209,7 @@ const getDashboardAuthorizationToken = async (metadata) => {
         body[key] = metadata[key];
       });
     } 
+    
     /*
       Make the call to the backend API, using the platform user access credentials in the header
       to retrieve a dashboard authorization token for this user
@@ -401,5 +404,6 @@ const addToPlaylist = async (playlist_id, song_id) => {
 }
 
 const displaySongInfo = async (song_id) => {
-  console.log("SHOULD MAKE SPTFY REQ");
+  let token = await getDashboardAuthorizationToken({song_id: [song_id]});
+  loadDashboard("e92c869c-2a94-406f-b18f-d691fd627d34", token.id, token.token, "#song-info-dashboard");
 }
