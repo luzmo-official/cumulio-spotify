@@ -104,12 +104,19 @@ const addToPlaylistSelector = async (id) => {
   playlists.forEach(playlist => {
     let div = document.createElement('div');
     div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
-    div.onclick = () => {addToPlaylist(playlist.id, id)};
+    div.onclick = async () => {
+      const response = await addToPlaylist(playlist.id, id);
+      if(response.snapshot_id !== 'undefined')
+      {
+        const trackCounter = document.getElementById("track-counter");
+        trackCounter.textContent = `${playlist.tracks.total + 1} tracks`;
+      }
+    };
     div.innerHTML = `
     <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
     <div class="card-body">
       <h5 class="card-title">${playlist.name}</h2>
-      <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
+      <h6 id="track-counter" class="card-subtitle">${playlist.tracks.total} tracks</h6>
     </div>
     `
     playlistsDiv.append(div);
@@ -187,7 +194,6 @@ const toggleCustomEventListeners = (boolean) => {
       }
       else if(event.data.event === "song_info") {
         await displaySongInfo(event.data.name.id.split("&id=")[1]);
-        songInfoModal.show();
       }
     })
   }
@@ -385,7 +391,6 @@ const makeSpotifyRequest = async (url, method) => {
       });
     }
     while (res.status === 401 && await refreshToken());
-    console.log("Status: " +res.status);
 
     return await res.json();
   }
@@ -397,7 +402,7 @@ const makeSpotifyRequest = async (url, method) => {
 const addToPlaylist = async (playlist_id, song_id) => {
   console.log("Attempting to add song id: " + song_id + " to " + playlist_id);
   return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?uris=spotify%3Atrack%3A${song_id}`, 'post')
-    .then(response => console.log(response));
+    .then(response => {return response;});
   //await loadPlaylistSelector();
   //playlistModal.show();
 }
@@ -405,9 +410,11 @@ const addToPlaylist = async (playlist_id, song_id) => {
 const displaySongInfo = async (song_id) => {
   let token = await getDashboardAuthorizationToken({song_id: [song_id]});
   loadDashboard("e92c869c-2a94-406f-b18f-d691fd627d34", token.id, token.token, "#song-info-dashboard");
+  songInfoModal.show();
   document.getElementById("add-song-button").onclick = async function() {
     console.log("add button clicked");
     await addToPlaylistSelector(song_id);
+    songInfoModal.hide();
     //TODO: these modals should pottentially be one? And then we only add to the internal div. 
     //This needs to shaw the playlists modal which you can then use to add your song to
     //Back functionality to go back to song info
