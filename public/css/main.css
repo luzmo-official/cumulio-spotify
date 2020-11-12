@@ -79,6 +79,9 @@ body {
 }
 
 #sidebar li {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   line-height: 2.5rem;
   position: relative;
   min-width: 10rem;
@@ -125,20 +128,48 @@ body {
   cursor: default;
 }
 
-#user-image {
-  border-color: #dee2e6;
-  width: 4.375rem;
-  height: 4.375rem;
+#user {
+  line-height: 3rem;
+  width: 3rem;
+  background: rgba(255,255,255,.3);
+  height: 3rem;
+  text-align: center;
+  border-radius: 50%;
+  position: relative;
 }
 
-.log-out-button {
+#user-img {
+  border-color: #dee2e6;
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.login-btn-small {
+  border-radius: 0.125rem;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  line-height: 1rem;
+  font-size: .5rem;
+  padding: 0 0.25rem;
+  margin-left: .5rem;
+}
+
+.guarded {
+  opacity: .3;
+  cursor: not-allowed !important;
+}
+
+.log-out-btn {
   float: right;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   color: rgba(255, 255, 255, 0.8);
 }
 
-.log-out-button:hover {
+.log-out-btn:hover {
   color: white !important;
 }
 

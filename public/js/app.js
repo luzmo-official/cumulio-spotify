@@ -80,6 +80,7 @@ const loadByGenre = () => {
 }
 
 const loadMyPlaylistsVisualized = () => {
+  if (!user.loggedIn) return window.location.href = '/login';
   openPage('My playlists visualized', 'my-playlists-viz');
   removeDashboard();
 }
@@ -94,6 +95,11 @@ const loadCumulioFavorites = async () => {
 
 const loadCumulioPlaylist = () => {
   openPage('Cumul.io playlist', 'cumulio-playlist');
+  removeDashboard();
+}
+const loadMyPlaylist = () => {
+  if (!user.loggedIn) return window.location.href = '/login';
+  openPage('My playlists', 'my-playlists');
   removeDashboard();
 }
 
@@ -270,20 +276,30 @@ const setActiveMenuItem = (name) => {
 }
 
 const setLoginStatus = (boolean, res) => {
+  if (res) user = res;
+  const loginBtnEl = document.getElementById('login-btn');
+  const smallLoginBtnEls = document.querySelectorAll('.login-btn-small');
+  const guardedEls = document.querySelectorAll('.guarded');
+  const userEl = document.getElementById('user');
+  const userImgEl = document.getElementById('user-img');
+  const userLetterEl = document.getElementById('user-letter');
   if (boolean) {
-    document.querySelector('#login-btn').classList.add('d-none');
-    user = { ...user, ...res };
-    console.log(user)
-    document.getElementById('user-name').textContent = user.display_name;
+    user.loggedIn = true
+    loginBtnEl.classList.add('d-none');
+    userEl.classList.remove('d-none');
+    smallLoginBtnEls.forEach((d) => d.classList.add('d-none'));
+    guardedEls.forEach((d) => d.classList.remove('guarded'));
+    userLetterEl.innerText = user && user.display_name ? user.display_name.substring(0,1) : '';
     if (user.images && user.images.length > 0) {
-      document.getElementById('user-img').src = user.images[0].url;
+      userImgEl.classList.remove('d-none');
+      userImgEl.src = user.images[0].url;
     }
-    else {
-
-    }
+    else userImgEl.classList.add('d-none');
   }
   else {
-    document.querySelector('#login-btn').classList.remove('d-none');
+    userEl.classList.add('d-none');
+    loginBtnEl.classList.remove('d-none');
+    smallLoginBtnEls.forEach((d) => d.classList.remove('d-none'));
   }
 }
 
@@ -309,6 +325,7 @@ const getUserData = () => {
         setLoginStatus(false);
       }
       else {
+        console.log(response, 'RR')
         setLoginStatus(true, response);
       }
     });
@@ -411,8 +428,7 @@ const displaySongInfo = async (song_id) => {
   let token = await getDashboardAuthorizationToken({song_id: [song_id]});
   loadDashboard("e92c869c-2a94-406f-b18f-d691fd627d34", token.id, token.token, "#song-info-dashboard");
   songInfoModal.show();
-  document.getElementById("add-song-button").onclick = async function() {
-    console.log("add button clicked");
+  document.getElementById("add-song-btn").onclick = async function() {
     await addToPlaylistSelector(song_id);
     songInfoModal.hide();
     //TODO: these modals should pottentially be one? And then we only add to the internal div. 
