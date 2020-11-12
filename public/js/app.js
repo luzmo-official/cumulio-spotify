@@ -4,7 +4,6 @@
 
 */
 
-const { post } = require("request");
 
 let user = {};
 let spotifyParams = {};
@@ -83,6 +82,7 @@ const loadByGenre = () => {
 }
 
 const loadMyPlaylistsVisualized = () => {
+  if (!user.loggedIn) return window.location.href = '/login';
   openPage('My playlists visualized', 'my-playlists-viz');
   removeDashboard();
 }
@@ -99,22 +99,32 @@ const loadCumulioPlaylist = () => {
   openPage('Cumul.io playlist', 'cumulio-playlist');
   removeDashboard();
 }
+const loadMyPlaylist = () => {
+  if (!user.loggedIn) return window.location.href = '/login';
+  openPage('My playlists', 'my-playlists');
+  removeDashboard();
+}
 
 const addToPlaylistSelector = async (id) => {
   let playlists = await getPlaylists();
   let playlistsDiv = document.querySelector('#addadble-playlists');
   playlistsDiv.innerHTML = '';
-  console.log("Available playlists: ");
   playlists.forEach(playlist => {
-    //console.log(playlist.name);
     let div = document.createElement('div');
     div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
-    div.onclick = () => {addToPlaylist(playlist.id, id)};
+    div.onclick = async () => {
+      const response = await addToPlaylist(playlist.id, id);
+      if(response.snapshot_id !== 'undefined')
+      {
+        const trackCounter = document.getElementById("track-counter");
+        trackCounter.textContent = `${playlist.tracks.total + 1} tracks`;
+      }
+    };
     div.innerHTML = `
     <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
     <div class="card-body">
       <h5 class="card-title">${playlist.name}</h2>
-      <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
+      <h6 id="track-counter" class="card-subtitle">${playlist.tracks.total} tracks</h6>
     </div>
     `
     playlistsDiv.append(div);
@@ -158,17 +168,22 @@ const showPlaylistDashboard = async (token) => {
 
 */
 
-const loadDashboard = (id, key, token) => {
+const loadDashboard = (id, key, token, container) => {
   if (id) {
     dashboardOptions.dashboardId = id;
   }
   activeToken = null; // Reset active dashboard token
+  //use container if available
+  if (container) {
+    dashboardOptions.container = container;
+  }
   // use tokens if available
   if (key && token) {
     dashboardOptions.key = key;
     dashboardOptions.token = token;
     activeToken = { key: key, token: token };
   }
+
   // add the dashboard to the #dashboard-container element
   activeDashboard = Cumulio.addDashboard(dashboardOptions);
 }
@@ -190,9 +205,7 @@ const toggleCustomEventListeners = (boolean) => {
         playlistModal.show();
       }
       else if(event.data.event === "song_info") {
-        console.log("want to display song info");
         await displaySongInfo(event.data.name.id.split("&id=")[1]);
-        songInfoModal.show();
       }
     })
   }
@@ -213,6 +226,7 @@ const getDashboardAuthorizationToken = async (metadata) => {
         body[key] = metadata[key];
       });
     } 
+    
     /*
       Make the call to the backend API, using the platform user access credentials in the header
       to retrieve a dashboard authorization token for this user
@@ -268,20 +282,30 @@ const setActiveMenuItem = (name) => {
 }
 
 const setLoginStatus = (boolean, res) => {
+  if (res) user = res;
+  const loginBtnEl = document.getElementById('login-btn');
+  const smallLoginBtnEls = document.querySelectorAll('.login-btn-small');
+  const guardedEls = document.querySelectorAll('.guarded');
+  const userEl = document.getElementById('user');
+  const userImgEl = document.getElementById('user-img');
+  const userLetterEl = document.getElementById('user-letter');
   if (boolean) {
-    document.querySelector('#login-btn').classList.add('d-none');
-    user = { ...user, ...res };
-    console.log(user)
-    document.getElementById('user-name').textContent = user.display_name;
+    user.loggedIn = true
+    loginBtnEl.classList.add('d-none');
+    userEl.classList.remove('d-none');
+    smallLoginBtnEls.forEach((d) => d.classList.add('d-none'));
+    guardedEls.forEach((d) => d.classList.remove('guarded'));
+    userLetterEl.innerText = user && user.display_name ? user.display_name.substring(0,1) : '';
     if (user.images && user.images.length > 0) {
-      document.getElementById('user-img').src = user.images[0].url;
+      userImgEl.classList.remove('d-none');
+      userImgEl.src = user.images[0].url;
     }
-    else {
-
-    }
+    else userImgEl.classList.add('d-none');
   }
   else {
-    document.querySelector('#login-btn').classList.remove('d-none');
+    userEl.classList.add('d-none');
+    loginBtnEl.classList.remove('d-none');
+    smallLoginBtnEls.forEach((d) => d.classList.remove('d-none'));
   }
 }
 
@@ -349,6 +373,7 @@ const getUserData = () => {
         setLoginStatus(false);
       }
       else {
+        console.log(response, 'RR')
         setLoginStatus(true, response);
       }
     });
@@ -431,7 +456,6 @@ const makeSpotifyRequest = async (url, method) => {
       });
     }
     while (res.status === 401 && await refreshToken());
-    console.log("Status: " +res.status);
 
     return await res.json();
   }
@@ -443,11 +467,21 @@ const makeSpotifyRequest = async (url, method) => {
 const addToPlaylist = async (playlist_id, song_id) => {
   console.log("Attempting to add song id: " + song_id + " to " + playlist_id);
   return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?uris=spotify%3Atrack%3A${song_id}`, 'post')
-    .then(response => console.log(response));
+    .then(response => {return response;});
   //await loadPlaylistSelector();
   //playlistModal.show();
 }
 
 const displaySongInfo = async (song_id) => {
-  console.log("SHOULD MAKE SPTFY REQ");
+  let token = await getDashboardAuthorizationToken({song_id: [song_id]});
+  loadDashboard("e92c869c-2a94-406f-b18f-d691fd627d34", token.id, token.token, "#song-info-dashboard");
+  songInfoModal.show();
+  document.getElementById("add-song-btn").onclick = async function() {
+    await addToPlaylistSelector(song_id);
+    songInfoModal.hide();
+    //TODO: these modals should pottentially be one? And then we only add to the internal div. 
+    //This needs to shaw the playlists modal which you can then use to add your song to
+    //Back functionality to go back to song info
+    playlistModal.show();
+  }
 }
