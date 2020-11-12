@@ -103,6 +103,36 @@ app.post('/authorization', (req, res) => {
     });
 });
 
+// Fetch song ID based on song name
+app.get('/song_uri', async (req, res) => {
+  console.log(req.query);
+  let songName = req.query.songName || null;
+  let type = req.query.type || null;
+  if(songName && type) {
+    let data = await client.get('data', {
+      dimensions: [{
+        column_id: '0e7dc298-6751-4467-b6ac-ca48fd8d0cb4',
+        dataset_id: '86c120f8-7890-4aec-98cc-c27f7928c877'
+      }],
+      where: [{
+        expression: '? = ?',
+        parameters: [
+          {
+            column_id: 'c5766a72-055b-447b-ac87-3b95e3fce7ce',
+            dataset_id: '86c120f8-7890-4aec-98cc-c27f7928c877'
+          },
+          songName
+        ]
+      }]
+    });
+    console.log(data.data[0][0]);
+    res.status(200).json(data);
+  }
+  else {
+    return res.status(400).json({message: 'you must supply a valid songName and type'});
+  }
+});
+
 plugin.init(app);
 
 // Serve the index page for all other requests
