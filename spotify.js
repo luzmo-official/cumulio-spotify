@@ -48,10 +48,10 @@ class Spotify {
           // console.log(response);
           if (!error && response.statusCode === 200) {
             if (t.refresh_tokens[acces_token]) delete t.refresh_tokens[acces_token];
-            new_access_token = body.access_token;
+            let new_access_token = body.access_token;
             t.refresh_tokens[new_access_token] = refresh_token;
   
-            resolve(access_token);
+            resolve(new_access_token);
           }
         });
     })

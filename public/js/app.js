@@ -4,6 +4,8 @@
 
 */
 
+const { post } = require("request");
+
 let user = {};
 let spotifyParams = {};
 let playerStatus = { playing: false };
@@ -17,6 +19,7 @@ let dashboards = {
   playlist: '12c7c734-562e-4f8f-9500-16dc59c38adc',
   cumulio: 'f3555bce-a874-4924-8d08-136169855807'
 };
+let activeToken = {};
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});
 
@@ -159,10 +162,12 @@ const loadDashboard = (id, key, token) => {
   if (id) {
     dashboardOptions.dashboardId = id;
   }
+  activeToken = null; // Reset active dashboard token
   // use tokens if available
   if (key && token) {
     dashboardOptions.key = key;
     dashboardOptions.token = token;
+    activeToken = { key: key, token: token };
   }
   // add the dashboard to the #dashboard-container element
   activeDashboard = Cumulio.addDashboard(dashboardOptions);
@@ -180,6 +185,7 @@ const toggleCustomEventListeners = (boolean) => {
     Cumulio.onCustomEvent(async (event) => {
       if(event.data.event === "add_to_playlist") {
         console.log("want to add to playlist");
+        getSongUri(event.data.name.id);
         await addToPlaylistSelector(event.data.name.id.split("&id=")[1]);
         playlistModal.show();
       }
@@ -279,10 +285,52 @@ const setLoginStatus = (boolean, res) => {
   }
 }
 
-const getSongUri = (songName) => {
-  // fetch(`song_uri?name=${songName}`)
+const getSongUri = async (songName) => {
+  if (activeToken) {
+    // If we have an active token we used our plugin as a data source.
+    // Let's re-use the token when fetching the song's ID so we don't need to
+    // create an authorization token twice.
+    let data = await makeCumulioRequest('data', {
+      key: activeToken.key,
+      token: activeToken.token,
+      action: 'get',
+      find: {
+        dimensions: [{
+          column_id: '',
+          dataset_id: ''
+        }],
+        where: [{
+          expression: '? = ?',
+          parameters: [
+            {
+              column_id: '',
+              dataset_id: ''
+            },
+            songName
+          ]
+        }]
+      }
+    });
+    console.log(data);
+  }
+  else {
+    // No active token -> using a public dashboard. The only way to get the song ID is via backend.
+    let res = await fetch(`song_uri?songName=${songName}&type=cumulioplaylist`)
+    res = await res.json();
+    console.log(res);
+  }
 }
 
+const makeCumulioRequest = async (endpoint, payload) => {
+  const apiURL = 'https://api.cumul.io/0.1.0/';
+  payload.version = '0.1.0';
+  let res = await fetch(apiURL + endpoint, {
+    method: 'POST',
+    headers: {'Content-type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+}
 
 /* 
   
@@ -319,7 +367,7 @@ const refreshToken = () => {
   })
     .then(res => res.json())
     .then(response => {
-      spotifyParams.access_token = response.access_token;
+      spotifyParams.access_token = response;
     })
     .then(() => {
       return true;
