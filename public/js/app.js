@@ -103,13 +103,15 @@ const loadMyPlaylist = () => {
   removeDashboard();
 }
 
-const addToPlaylistSelector = async (id) => {
+const addToPlaylistSelector = async (id, msg) => {
   let playlists = await getPlaylists();
-  let playlistsDiv = document.querySelector('#addadble-playlists');
-  playlistsDiv.innerHTML = '';
+  let playlistsEl = document.querySelector('#add-to-playlists');
+  let modalTitle = document.querySelector('#playlist-modal-label');
+  modalTitle.innerText = msg || 'Chose a playlist to add song to';
+  playlistsEl.innerHTML = '';
   playlists.forEach(playlist => {
     let div = document.createElement('div');
-    div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
+    div.classList.add('col-6', 'col-lg-3');
     div.onclick = async () => {
       const response = await addToPlaylist(playlist.id, id);
       if(response.snapshot_id !== 'undefined')
@@ -119,13 +121,15 @@ const addToPlaylistSelector = async (id) => {
       }
     };
     div.innerHTML = `
-    <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
-    <div class="card-body">
-      <h5 class="card-title">${playlist.name}</h2>
-      <h6 id="track-counter" class="card-subtitle">${playlist.tracks.total} tracks</h6>
+    <div class="card playlist-card mr-1 mb-2">
+      <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
+      <div class="card-body">
+        <div class="card-title text-truncate">${playlist.name}</div>
+        <div id="track-counter" class="card-subtitle">${playlist.tracks.total} tracks</div>
+      </div>
     </div>
     `
-    playlistsDiv.append(div);
+    playlistsEl.append(div);
   });
 }
 
@@ -133,8 +137,8 @@ const loadMyPlaylists = async () => {
   openPage('My Playlists', 'my-playlists');
   removeDashboard();
   let playlists = await getPlaylists();
-  let playlistsDiv = document.querySelector('#playlists-list');
-  playlistsDiv.innerHTML = '';
+  let playlistsEl = document.querySelector('#playlists-list');
+  playlistsEl.innerHTML = '';
   playlists.forEach(playlist => {
     let div = document.createElement('div');
     div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
@@ -146,7 +150,7 @@ const loadMyPlaylists = async () => {
       <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
     </div>
     `
-    playlistsDiv.append(div);
+    playlistsEl.append(div);
   });
 }
 
