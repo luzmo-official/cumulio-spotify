@@ -58,6 +58,7 @@ const toggleMenu = (boolean) => {
   else {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('open');
+    document.getElementById('dashboard-container').innerHTML = "";
   }
 }
 
