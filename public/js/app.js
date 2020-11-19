@@ -13,8 +13,8 @@ let currentPlaylist = { songs: [] };
 let currentSong = {};
 let customEventsActive = false;
 let activeDashboard = null;
-let dashboardId = '8edf0005-6493-48e1-9689-5740a1829cdd';
 let dashboards = {
+  kaggle : '8edf0005-6493-48e1-9689-5740a1829cdd',
   playlist: '12c7c734-562e-4f8f-9500-16dc59c38adc',
   cumulio: 'f3555bce-a874-4924-8d08-136169855807'
 };
@@ -23,7 +23,7 @@ const playlistModal = new bootstrap.Modal(document.getElementById('playlist-moda
 const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});
 
 const dashboardOptions = {
-  dashboardId: dashboardId,
+  dashboardId: dashboards.kaggle,
   container: '#dashboard-container',
   loader: {
     background: '#111b31',
@@ -59,6 +59,8 @@ const toggleMenu = (boolean) => {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('open');
     document.getElementById('dashboard-container').innerHTML = "";
+    document.getElementById('playlists-list').innerHTML = "";
+
   }
 }
 
@@ -73,7 +75,7 @@ const loadSongs = () => {
   console.log("trying to load default page");
   toggleCustomEventListeners(true);
   openPage('Songs visualized', 'songs');
-  loadDashboard('8edf0005-6493-48e1-9689-5740a1829cdd');
+  loadDashboard(dashboards.kaggle);
 }
 
 const loadByGenre = () => {
@@ -92,8 +94,8 @@ const loadCumulioFavorites = async () => {
   openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
   toggleCustomEventListeners(true);
   removeDashboard();
-  console.log("Trying to load " + dashboards['cumulio']);
-  loadDashboard(dashboards['cumulio']);
+  console.log("Trying to load " + dashboards.cumulio);
+  loadDashboard(dashboards.cumulio);
 }
 
 const loadCumulioPlaylist = () => {
@@ -106,8 +108,10 @@ const loadMyPlaylist = () => {
   removeDashboard();
 }
 
-const addToPlaylistSelector = async (id, msg) => {
+const addToPlaylistSelector = async (name, id, fromInfoModal, msg) => {
+  console.log("From Song info ", fromInfoModal);
   let playlists = await getPlaylists();
+  let backButton = document.getElementById('back-button');
   let playlistsEl = document.querySelector('#add-to-playlists');
   let modalTitle = document.querySelector('#playlist-modal-label');
   modalTitle.innerText = msg || 'Chose a playlist to add song to';
@@ -132,6 +136,17 @@ const addToPlaylistSelector = async (id, msg) => {
       </div>
     </div>
     `
+    
+    if(fromInfoModal)
+    {
+      backButton.style.visibility = "visible";
+      backButton.onclick = async function () {
+        playlistModal.hide();
+        await displaySongInfo(name, id);
+      }
+    }
+    else backButton.style.visibility = "hidden";
+
     playlistsEl.append(div);
   });
 }
@@ -164,7 +179,7 @@ const selectPlaylist = async (id) => {
 
 const showPlaylistDashboard = async (token) => {
   removePlaylists();
-  loadDashboard(dashboards['playlist'], token.id, token.token);
+  loadDashboard(dashboards.playlist, token.id, token.token);
 }
 
 /* 
@@ -206,11 +221,11 @@ const toggleCustomEventListeners = (boolean) => {
       if(event.data.event === "add_to_playlist") {
         console.log("want to add to playlist");
         getSongUri(event.data.name.id);
-        await addToPlaylistSelector(event.data.name.id.split("&id=")[1]);
+        await addToPlaylistSelector(event.data.name.id.split("&id=")[0], event.data.name.id.split("&id=")[1]);
         playlistModal.show();
       }
       else if(event.data.event === "song_info") {
-        await displaySongInfo(event.data.name.id.split("&id=")[1]);
+        await displaySongInfo(event.data.name.id.split("&id=")[0], event.data.name.id.split("&id=")[1]);
       }
     })
   }
@@ -378,7 +393,6 @@ const getUserData = () => {
         setLoginStatus(false);
       }
       else {
-        console.log(response, 'RR')
         setLoginStatus(true, response);
       }
     });
@@ -473,20 +487,17 @@ const addToPlaylist = async (playlist_id, song_id) => {
   console.log("Attempting to add song id: " + song_id + " to " + playlist_id);
   return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?uris=spotify%3Atrack%3A${song_id}`, 'post')
     .then(response => {return response;});
-  //await loadPlaylistSelector();
-  //playlistModal.show();
 }
 
-const displaySongInfo = async (song_id) => {
+const displaySongInfo = async (song_name, song_id) => {
   let token = await getDashboardAuthorizationToken({song_id: [song_id]});
   loadDashboard("e92c869c-2a94-406f-b18f-d691fd627d34", token.id, token.token, "#song-info-dashboard");
   songInfoModal.show();
+  let modalTitle = document.querySelector('#song-info-modal-label');
+  modalTitle.innerText = `${song_name} Info`;
   document.getElementById("add-song-btn").onclick = async function() {
-    await addToPlaylistSelector(song_id);
+    await addToPlaylistSelector(song_name, song_id, true);
     songInfoModal.hide();
-    //TODO: these modals should pottentially be one? And then we only add to the internal div. 
-    //This needs to shaw the playlists modal which you can then use to add your song to
-    //Back functionality to go back to song info
     playlistModal.show();
   }
 }
