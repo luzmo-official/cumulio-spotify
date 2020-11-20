@@ -113,14 +113,15 @@ const loadMyPlaylist = () => {
   removeDashboard();
 }
 
-const addToPlaylistSelector = async (name, id) => {
+const addToPlaylistSelector = async (name, id, artist) => {
   const playlists = await getPlaylists();
   const playlistsEl = document.getElementById('add-to-playlists');
   const modalTitle = document.getElementById('playlist-modal-label');
   const songName = name || 'song';
-  const songArtist = 'artist';
-  modalTitle.innerHTML = `Add <i><b>${songName}</b></i> by <i><b>${songArtist}</b></i> to`;
+  // const songArtist = artist;
+  modalTitle.innerHTML = `Add <i><b>${songName}</b></i> to`;
   playlistsEl.innerHTML = '';
+  console.log("Attempting to add ", name, " with id ", id );
   playlists.forEach(playlist => {
     let div = document.createElement('div');
     div.classList.add('col-6', 'col-lg-3', 'mb-3');
@@ -129,7 +130,7 @@ const addToPlaylistSelector = async (name, id) => {
       if(response.snapshot_id !== 'undefined') {
         const trackCounter = document.querySelector(`.playlist-${playlist.id} .track-counter`);
         trackCounter.textContent = `${playlist.tracks.total + 1} tracks`;
-        succesfullyAddedToPlaylist(name, playlist);
+        succesfullyAddedToPlaylist(name, id, playlist);
       }
       else {
         // TO DO unhappy path to create
@@ -149,14 +150,18 @@ const addToPlaylistSelector = async (name, id) => {
   });
 }
 
-const succesfullyAddedToPlaylist = (song, playlist) => {
+const succesfullyAddedToPlaylist = (song, id, playlist) => {
   const modalTitle = document.querySelector('#playlist-modal .modal-title');
   const modalBody = document.getElementById('add-to-playlists');
   // TO DO add content & style
   modalTitle.innerText = 'Succes';
   modalBody.innerHTML = `
-    <div>Succesfully added song to playlist</div>
+    <div>Succesfully added ${song} to playlist</div>
+    <button id="add-song-btn" type="button" class="btn btn-primary">Add to other playlist</button>
   `
+  document.getElementById("add-song-btn").onclick = async function() {
+    await addToPlaylistSelector(song, id);
+  }
 }
 
 const loadMyPlaylists = async () => {
@@ -267,8 +272,15 @@ const toggleCustomEventListeners = (boolean) => {
     Cumulio.onCustomEvent(async (event) => {
       if(event.data.event === "add_to_playlist") {
         console.log("want to add to playlist");
-        getSongUri(event.data.name.id);
-        await addToPlaylistSelector(event.data.name.id.split("&id=")[0], event.data.name.id.split("&id=")[1]);
+        if(event.data.columns == undefined)
+        {
+          getSongUri(event.data.name.id);
+          await addToPlaylistSelector(event.data.name.id.split("&id=")[0], event.data.name.id.split("&id=")[1]);
+        }
+        else if(event.data.columns != undefined)
+        {
+          await addToPlaylistSelector(event.data.columns[0].value, event.data.columns[7].value);
+        }
         playlistModal.show();
       }
       else if(event.data.event === "song_info") {
