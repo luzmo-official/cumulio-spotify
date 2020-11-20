@@ -113,54 +113,57 @@ const loadMyPlaylist = () => {
   removeDashboard();
 }
 
-const addToPlaylistSelector = async (name, id, fromInfoModal, msg) => {
-  console.log("From Song info ", fromInfoModal);
-  let playlists = await getPlaylists();
-  let backButton = document.getElementById('back-button');
-  let playlistsEl = document.querySelector('#add-to-playlists');
-  let modalTitle = document.querySelector('#playlist-modal-label');
-  modalTitle.innerText = msg || 'Chose a playlist to add song to';
+const addToPlaylistSelector = async (name, id) => {
+  const playlists = await getPlaylists();
+  const playlistsEl = document.getElementById('add-to-playlists');
+  const modalTitle = document.getElementById('playlist-modal-label');
+  const songName = name || 'song';
+  const songArtist = 'artist';
+  modalTitle.innerHTML = `Add <i><b>${songName}</b></i> by <i><b>${songArtist}</b></i> to`;
   playlistsEl.innerHTML = '';
   playlists.forEach(playlist => {
     let div = document.createElement('div');
-    div.classList.add('col-6', 'col-lg-3');
+    div.classList.add('col-6', 'col-lg-3', 'mb-3');
     div.onclick = async () => {
       const response = await addToPlaylist(playlist.id, id);
-      if(response.snapshot_id !== 'undefined')
-      {
-        const trackCounter = document.getElementById("track-counter");
+      if(response.snapshot_id !== 'undefined') {
+        const trackCounter = document.querySelector(`.playlist-${playlist.id} .track-counter`);
         trackCounter.textContent = `${playlist.tracks.total + 1} tracks`;
+        succesfullyAddedToPlaylist(name, playlist);
+      }
+      else {
+        // TO DO unhappy path to create
       }
     };
     div.innerHTML = `
-    <div class="card playlist-card mr-1 mb-2">
+    <div class="playlist-${playlist.id} card playlist-card mr-1 mb-2">
       <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
       <div class="card-body">
         <div class="card-title text-truncate">${playlist.name}</div>
-        <div id="track-counter" class="card-subtitle">${playlist.tracks.total} tracks</div>
+        <div class="track-counter" class="card-subtitle">${playlist.tracks.total} tracks</div>
       </div>
     </div>
-    `
-    
-    if(fromInfoModal)
-    {
-      backButton.style.visibility = "visible";
-      backButton.onclick = async function () {
-        playlistModal.hide();
-        await displaySongInfo(name, id);
-      }
-    }
-    else backButton.style.visibility = "hidden";
+    `;
 
     playlistsEl.append(div);
   });
+}
+
+const succesfullyAddedToPlaylist = (song, playlist) => {
+  const modalTitle = document.querySelector('#playlist-modal .modal-title');
+  const modalBody = document.getElementById('add-to-playlists');
+  // TO DO add content & style
+  modalTitle.innerText = 'Succes';
+  modalBody.innerHTML = `
+    <div>Succesfully added song to playlist</div>
+  `
 }
 
 const loadMyPlaylists = async () => {
   openPage('My Playlists', 'my-playlists');
   removeDashboard();
   let playlists = await getPlaylists();
-  let playlistsEl = document.querySelector('#playlists-list');
+  let playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
   playlists.forEach(playlist => {
     let div = document.createElement('div');
@@ -571,7 +574,7 @@ const displaySongInfo = async (song_name, song_id) => {
   let modalTitle = document.querySelector('#song-info-modal-label');
   modalTitle.innerText = `${song_name} Info`;
   document.getElementById("add-song-btn").onclick = async function() {
-    await addToPlaylistSelector(song_name, song_id, true);
+    await addToPlaylistSelector(song_name, song_id);
     songInfoModal.hide();
     playlistModal.show();
   }

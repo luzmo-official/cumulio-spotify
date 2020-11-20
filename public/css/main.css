@@ -259,7 +259,6 @@ body {
   text-transform: uppercase;
   font-weight: bold;
   opacity: 0.6;
-  padding: 1rem 0;
 }
 
 .song-item {
@@ -388,15 +387,4 @@ body {
 .modal-header,
 .modal-footer {
   border-color: rgba(255, 255, 255, 0.1);
-}
-
-#back-button {
-  background: transparent;
-  color: aliceblue;
-  border-color: aliceblue;
-  border-radius: 15px;
-  padding: 10px 10px;
-  margin-right: 20px;
-  text-align: center;
-  visibility: hidden;
 }
