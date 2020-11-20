@@ -5,6 +5,7 @@
 */
 
 
+const CUMULIO_PLAYLIST = '0GIFfPsuHdZUQGrGvKiXSm';
 let user = {};
 let spotifyParams = {};
 let playerStatus = { playing: false };
@@ -98,9 +99,13 @@ const loadCumulioFavorites = async () => {
   loadDashboard(dashboards.cumulio);
 }
 
-const loadCumulioPlaylist = () => {
+const loadCumulioPlaylist = async () => {
   openPage('Cumul.io playlist', 'cumulio-playlist');
   removeDashboard();
+  const playlistEl = await loadPlaylistSongs(CUMULIO_PLAYLIST);
+  const container = document.getElementById('playlists-list');
+  container.innerHTML = '';
+  container.append(playlistEl);
 }
 const loadMyPlaylist = () => {
   if (!user.loggedIn) return window.location.href = '/login';
@@ -170,6 +175,45 @@ const loadMyPlaylists = async () => {
     `
     playlistsEl.append(div);
   });
+}
+
+const loadPlaylistSongs = async (playlistId) => {
+  const containerEl = document.createElement('div');
+  containerEl.classList.add('w-100');
+  const headerEl = document.createElement('div');
+  headerEl.classList.add('playlist-header', 'd-flex', 'py-3');
+  headerEl.innerHTML = `
+    <div class="img-header"></div>
+    <div class="song-info-header px-2">Track</div>
+    <div class="song-album-header px-2">Album</div>
+    <div class="song-year-header px-2">Year</div>
+    <div class="song-duration-header px-2">Duration</div>
+  `;
+  containerEl.append(headerEl);
+  let listEl = document.createElement('ul');
+  listEl.classList.add('songs-list', 'list-unstyled', 'w-100', 'px-3', 'px-lg-0');
+  let songs = await getSongsinPlaylist(playlistId);
+  songs.forEach((song) => {
+    let itemEl = document.createElement('li');
+    itemEl.classList.add('song-item', 'd-flex', 'w-100', 'align-items-center');
+    itemEl.onclick = () => {playSong(song.id)};
+    itemEl.innerHTML = `
+      <div class="song-img rounded"><img src="${song.image}"/></div>
+      <div class="song-info flex-grow-1 flex-shrink-1 px-2">
+        <div class="song-title text-truncate">
+          <span>${song.name}</span>
+          ${song.explicit ? '<span class="explicit-banner"></span>' : ''}
+        </div>
+        <div class="song-artist text-truncate">${song.artist}</div>
+      </div>
+      <div class="song-album d-none d-lg-flex text-truncate px-2">${song.album}</div>
+      <div class="song-year d-none d-lg-flex px-2">${song.releaseYear}</div>
+      <div class="song-duration px-2">${song.duration}</div>
+    `
+    listEl.append(itemEl);
+  });
+  containerEl.append(listEl);
+  return containerEl;
 }
 
 const selectPlaylist = async (id) => {
@@ -373,6 +417,7 @@ const makeCumulioRequest = async (endpoint, payload) => {
     headers: {'Content-type': 'application/json'},
     body: JSON.stringify(payload)
   });
+
   return await res.json();
 }
 
@@ -437,6 +482,35 @@ const getPlaylists = async () => {
   return playlists;
 }
 
+const getSongsinPlaylist = async (playListId) => {
+  let songs = [];
+  let response;
+  do {
+    response = await makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playListId}/tracks`, 'get');
+    songs = songs.concat(response.items.map(item => {
+      console.log(item);
+      const track = item.track || {};
+      const artists = track.artists ? track.artists : [];
+      const album = track.album ? track.album : null;
+      const trackImage = album && album.images && album.images.find((img) => img.height === 64) ? album.images.find((img) => img.height === 64).url : null;
+      return {
+        id: track.id,
+        name: track.name,
+        artist: artists.length > 0 ? artists.map((a) => a.name).join(', ') : 'Unknown',
+        album: track.album.name,
+        releaseYear: album.release_date ? album.release_date.substring(0,4) : 'Unknown',
+        explicit: track.explicit,
+        isPlayable: track.is_playable,
+        previewUrl: track.preview_url,
+        duration: `${Math.floor(track.duration_ms / 60000)}:${('0'+((track.duration_ms % 60000) / 1000).toFixed(0)).slice(-2)}`,
+        image: trackImage
+      }
+    }));
+  }
+  while (!response.next === null);
+  return songs;
+}
+
 const getSongInfo = (id) => {
   return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
     .then(response => console.log(response));
@@ -476,6 +550,7 @@ const makeSpotifyRequest = async (url, method) => {
     }
     while (res.status === 401 && await refreshToken());
 
+    console.log(res, 'RES')
     return await res.json();
   }
   catch (err) {
