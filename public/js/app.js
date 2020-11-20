@@ -102,11 +102,12 @@ const loadCumulioFavorites = async () => {
 const loadCumulioPlaylist = async () => {
   openPage('Cumul.io playlist', 'cumulio-playlist');
   removeDashboard();
-  const playlistEl = await loadPlaylistSongs(CUMULIO_PLAYLIST);
+  const playlistEl = await generatePlaylistSongList(CUMULIO_PLAYLIST);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);
 }
+
 const loadMyPlaylist = () => {
   if (!user.loggedIn) return window.location.href = '/login';
   openPage('My playlists', 'my-playlists');
@@ -165,22 +166,43 @@ const loadMyPlaylists = async () => {
   let playlists = await getPlaylists();
   let playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
-  playlists.forEach(playlist => {
-    let div = document.createElement('div');
-    div.classList.add('card', 'ml-1', 'mr-1', 'mb-2', 'playlist-card');
-    div.onclick = () => {selectPlaylist(playlist.id)};
-    div.innerHTML = `
-    <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
-    <div class="card-body">
-      <h5 class="card-title">${playlist.name}</h2>
-      <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
-    </div>
-    `
-    playlistsEl.append(div);
-  });
+  const container = generatePlaylistCards(playlists, loadPlaylist, {})
+  playlistsEl.append(container);
 }
 
-const loadPlaylistSongs = async (playlistId) => {
+const loadMyPlaylistsViz = async () => {
+  openPage('Select a playlist to visualize', 'my-playlists-viz');
+  removeDashboard();
+  let playlists = await getPlaylists();
+  let playlistsEl = document.getElementById('playlists-list');
+  playlistsEl.innerHTML = '';
+  console.log('hereio')
+  const container = generatePlaylistCards(playlists, visualizePlaylist, {});
+  playlistsEl.append(container);
+}
+
+const generatePlaylistCards = (playlists, callback, options) => {
+  const container = document.createElement('div');
+  container.classList.add('row');
+  playlists.forEach(playlist => {
+    let div = document.createElement('div');
+    div.classList.add('col-6', 'col-md-3', 'col-lg-2', 'mb-3');
+    div.onclick = () => {callback(playlist.id, options)};
+    div.innerHTML = `
+      <div class="card playlist-card">
+        <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
+        <div class="card-body">
+          <h5 class="card-title text-truncate">${playlist.name}</h2>
+          <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
+        </div>
+      </div>
+    `;
+    container.append(div);
+  });
+  return container;
+}
+
+const generatePlaylistSongList = async (playlistId) => {
   const containerEl = document.createElement('div');
   containerEl.classList.add('w-100');
   const headerEl = document.createElement('div');
@@ -219,9 +241,18 @@ const loadPlaylistSongs = async (playlistId) => {
   return containerEl;
 }
 
-const selectPlaylist = async (id) => {
+const visualizePlaylist = async (id) => {
   let token = await getDashboardAuthorizationToken({playlist_id: id});
   showPlaylistDashboard(token);
+}
+
+const loadPlaylist = async (id) => {
+  openPage('Playlist', 'my-playlists');
+  removeDashboard();
+  const playlistEl = await generatePlaylistSongList(id);
+  const container = document.getElementById('playlists-list');
+  container.innerHTML = '';
+  container.append(playlistEl);
 }
 
 const showPlaylistDashboard = async (token) => {
