@@ -71,7 +71,12 @@ const openPage = (title, name) => {
   toggleMenu(false);
 }
 
-// load the song analytics page
+/* 
+  
+  PAGES
+
+*/
+
 const loadSongs = () => {
   console.log("trying to load default page");
   toggleCustomEventListeners(true);
@@ -85,18 +90,18 @@ const loadByGenre = () => {
   loadDashboard('4e745750-c474-4439-8374-b9baf7c1d894');
 }
 
-const loadMyPlaylistsVisualized = () => {
-  if (!user.loggedIn) return window.location.href = '/login';
-  openPage('My playlists visualized', 'my-playlists-viz');
-  removeDashboard();
-}
-
 const loadCumulioFavorites = async () => {
   openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
   toggleCustomEventListeners(true);
   removeDashboard();
   console.log("Trying to load " + dashboards.cumulio);
   loadDashboard(dashboards.cumulio);
+}
+
+const loadMyPlaylistsVisualized = () => {
+  if (!user.loggedIn) return window.location.href = '/login';
+  openPage('My playlists visualized', 'my-playlists-viz');
+  removeDashboard();
 }
 
 const loadCumulioPlaylist = async () => {
@@ -113,6 +118,13 @@ const loadMyPlaylist = () => {
   openPage('My playlists', 'my-playlists');
   removeDashboard();
 }
+
+/* 
+  
+  MODAL FUNCTIONS
+
+*/
+
 
 const addToPlaylistSelector = async (name, id, artist) => {
   const playlists = await getPlaylists();
@@ -165,26 +177,13 @@ const succesfullyAddedToPlaylist = (song, id, playlist) => {
   }
 }
 
-const loadMyPlaylists = async () => {
-  openPage('My Playlists', 'my-playlists');
-  removeDashboard();
-  let playlists = await getPlaylists();
-  let playlistsEl = document.getElementById('playlists-list');
-  playlistsEl.innerHTML = '';
-  const container = generatePlaylistCards(playlists, loadPlaylist, {})
-  playlistsEl.append(container);
-}
 
-const loadMyPlaylistsViz = async () => {
-  openPage('Select a playlist to visualize', 'my-playlists-viz');
-  removeDashboard();
-  let playlists = await getPlaylists();
-  let playlistsEl = document.getElementById('playlists-list');
-  playlistsEl.innerHTML = '';
-  console.log('hereio')
-  const container = generatePlaylistCards(playlists, visualizePlaylist, {});
-  playlistsEl.append(container);
-}
+/* 
+  
+  PLAYLIST PAGES
+
+*/
+
 
 const generatePlaylistCards = (playlists, callback, options) => {
   const container = document.createElement('div');
@@ -207,7 +206,7 @@ const generatePlaylistCards = (playlists, callback, options) => {
   return container;
 }
 
-const generatePlaylistSongList = async (playlistId) => {
+const generatePlaylistSongList = async (playlistId, songClickcallback) => {
   const containerEl = document.createElement('div');
   containerEl.classList.add('w-100');
   const headerEl = document.createElement('div');
@@ -226,7 +225,7 @@ const generatePlaylistSongList = async (playlistId) => {
   songs.forEach((song) => {
     let itemEl = document.createElement('li');
     itemEl.classList.add('song-item', 'd-flex', 'w-100', 'align-items-center');
-    itemEl.onclick = () => {playSong(song.id)};
+    itemEl.onclick = () => {songClickcallback(song.id)};
     itemEl.innerHTML = `
       <div class="song-img rounded"><img src="${song.image}"/></div>
       <div class="song-info flex-grow-1 flex-shrink-1 px-2">
@@ -244,6 +243,27 @@ const generatePlaylistSongList = async (playlistId) => {
   });
   containerEl.append(listEl);
   return containerEl;
+}
+
+const loadMyPlaylists = async () => {
+  openPage('My Playlists', 'my-playlists');
+  removeDashboard();
+  let playlists = await getPlaylists();
+  let playlistsEl = document.getElementById('playlists-list');
+  playlistsEl.innerHTML = '';
+  const container = generatePlaylistCards(playlists, loadPlaylist, {})
+  playlistsEl.append(container);
+}
+
+const loadMyPlaylistsViz = async () => {
+  openPage('Select a playlist to visualize', 'my-playlists-viz');
+  removeDashboard();
+  let playlists = await getPlaylists();
+  let playlistsEl = document.getElementById('playlists-list');
+  playlistsEl.innerHTML = '';
+  console.log('hereio')
+  const container = generatePlaylistCards(playlists, visualizePlaylist, {});
+  playlistsEl.append(container);
 }
 
 const visualizePlaylist = async (id) => {
@@ -463,7 +483,6 @@ const makeCumulioRequest = async (endpoint, payload) => {
     headers: {'Content-type': 'application/json'},
     body: JSON.stringify(payload)
   });
-
   return await res.json();
 }
 
