@@ -1,11 +1,9 @@
 require('dotenv').load();
 const express = require('express');
-const request = require('request');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
-var compression = require('compression');
 const { join } = require('path');
 const app = express();
 const Cumulio = require('cumulio');
@@ -13,7 +11,6 @@ const Cumulio = require('cumulio');
 const plugin = require('./plugin');
 const spotify = require('./spotify');
 
-const dashboardId = '04cf04c4-c7b2-49a9-99d8-05e232244d94';
 const stateKey = 'spotify_auth_state';
 
 const client = new Cumulio({
@@ -80,14 +77,14 @@ app.get('/callback', function (req, res) {
       .then(credentials => {
         res.redirect('/#' + querystring.stringify(credentials));
       })
-      .catch(err => {
+      .catch(() => {
         res.redirect('/#' + querystring.stringify({ error: 'invalid_token' }));
       });
   }
 });
 
 app.post('/authorization', (req, res) => {
-  let metadata = req.body || {};
+  const metadata = req.body || {};
   // TODO: add securables to authorization
   client.create('authorization', {
     type: 'temporary',
@@ -98,18 +95,17 @@ app.post('/authorization', (req, res) => {
     .then(auth => {
       res.status(200).json(auth);
     })
-    .catch(err => {
+    .catch(() => {
       res.status(500).json('An unexpected error occurred, please try again later.');
     });
 });
 
 // Fetch song ID based on song name
 app.get('/song_uri', async (req, res) => {
-  console.log(req.query);
-  let songName = req.query.songName || null;
-  let type = req.query.type || null;
+  const songName = req.query.songName || null;
+  const type = req.query.type || null;
   if(songName && type) {
-    let data = await client.get('data', {
+    const data = await client.get('data', {
       dimensions: [{
         column_id: '0e7dc298-6751-4467-b6ac-ca48fd8d0cb4',
         dataset_id: '86c120f8-7890-4aec-98cc-c27f7928c877'
@@ -125,7 +121,6 @@ app.get('/song_uri', async (req, res) => {
         ]
       }]
     });
-    console.log(data.data[0][0]);
     res.status(200).json(data);
   }
   else {
@@ -141,4 +136,5 @@ app.get('/*', (req, res) => {
 });
 
 // Listen on port 3000
+// eslint-disable-next-line no-console
 app.listen(3000, () => console.log('Application running on port 3000'));
