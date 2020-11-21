@@ -7,6 +7,9 @@
 
 const CUMULIO_PLAYLIST = '0GIFfPsuHdZUQGrGvKiXSm';
 let user = {};
+const spotifyFns = {};
+const helper = {};
+const ui = {};
 let spotifyParams = {};
 let customEventsActive = false;
 let activeDashboard = null;
@@ -37,17 +40,24 @@ const dashboardOptions = {
 */
 
 window.onload = async () => {
-  getUserData();
-  loadSongs();
+  spotifyParams = helper.getHashParams();
+  if (!spotifyParams.access_token) return ui.setLoginStatus(false);
+  spotifyFns.makeSpotifyRequest('https://api.spotify.com/v1/me', 'get')
+    .then(response => {
+      if (response.error) ui.setLoginStatus(false);
+      else ui.setLoginStatus(true, response);
+    });
+
+  this.openPageSongAnalytics();
 };
 
 /* 
   
-  NAVIGATION
+  UI
 
 */
 
-const toggleMenu = (boolean) => {
+ui.toggleMenu = (boolean) => {
   if (boolean) {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('overlay').classList.add('open');
@@ -61,54 +71,180 @@ const toggleMenu = (boolean) => {
   }
 };
 
-const openPage = (title, name) => {
-  setTitle(title);
-  setActiveMenuItem(name);
-  toggleMenu(false);
+ui.openPage = (title, name) => {
+  ui.setTitle(title);
+  ui.setActiveMenuItem(name);
+  ui.toggleMenu(false);
   removeDashboard();
+};
+
+ui.setLoginStatus = (boolean, res) => {
+  if (res) user = res;
+  const loginBtnEl = document.getElementById('login-btn');
+  const smallLoginBtnEls = document.querySelectorAll('.login-btn-small');
+  const guardedEls = document.querySelectorAll('.guarded');
+  const userEl = document.getElementById('user');
+  const userImgEl = document.getElementById('user-img');
+  const userLetterEl = document.getElementById('user-letter');
+  if (boolean) {
+    user.loggedIn = true;
+    loginBtnEl.classList.add('d-none');
+    userEl.classList.remove('d-none');
+    smallLoginBtnEls.forEach((d) => d.classList.add('d-none'));
+    guardedEls.forEach((d) => d.classList.remove('guarded'));
+    userLetterEl.innerText = user && user.display_name ? user.display_name.substring(0, 1) : '';
+    if (user.images && user.images.length > 0) {
+      userImgEl.classList.remove('d-none');
+      userImgEl.src = user.images[0].url;
+    }
+    else userImgEl.classList.add('d-none');
+  }
+  else {
+    userEl.classList.add('d-none');
+    loginBtnEl.classList.remove('d-none');
+    smallLoginBtnEls.forEach((d) => d.classList.remove('d-none'));
+  }
+};
+
+ui.setTitle = (title) => {
+  document.querySelector('#page-title').innerText = title;
+};
+
+ui.setActiveMenuItem = (name) => {
+  const listItems = document.querySelectorAll('#menu-list li');
+  listItems.forEach((el) => el.classList.remove('active'));
+  document.querySelector(`#menu-list li[menu-item="${name}"]`).classList.add('active');
+};
+
+ui.generatePlaylistCards = (playlists, callback, options) => {
+  const container = document.createElement('div');
+  container.classList.add('row');
+  playlists.forEach(playlist => {
+    const div = document.createElement('div');
+    div.classList.add('col-6', 'col-md-3', 'col-lg-2', 'mb-3');
+    div.onclick = () => { callback(playlist.id, options); };
+    div.innerHTML = `
+      <div class="card playlist-card">
+        <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
+        <div class="card-body">
+          <h5 class="card-title text-truncate">${playlist.name}</h2>
+          <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
+        </div>
+      </div>
+    `;
+    container.append(div);
+  });
+  return container;
+};
+
+ui.generatePlaylistSongList = async (playlistId, songClickcallback) => {
+  const containerEl = document.createElement('div');
+  containerEl.classList.add('w-100');
+  const headerEl = document.createElement('div');
+  headerEl.classList.add('playlist-header', 'd-flex', 'py-3');
+  headerEl.innerHTML = `
+    <div class="img-header"></div>
+    <div class="song-info-header px-2">Track</div>
+    <div class="song-album-header px-2">Album</div>
+    <div class="song-year-header px-2">Year</div>
+    <div class="song-duration-header px-2">Duration</div>
+  `;
+  containerEl.append(headerEl);
+  const listEl = document.createElement('ul');
+  listEl.classList.add('songs-list', 'list-unstyled', 'w-100', 'px-3', 'px-lg-0');
+  const songs = await spotifyFns.getSongsinPlaylist(playlistId);
+  songs.forEach((song) => {
+    const itemEl = document.createElement('li');
+    itemEl.classList.add('song-item', 'd-flex', 'w-100', 'align-items-center');
+    itemEl.onclick = () => { songClickcallback(song.id); };
+    itemEl.innerHTML = `
+      <div class="song-img rounded"><img src="${song.image}"/></div>
+      <div class="song-info flex-grow-1 flex-shrink-1 px-2">
+        <div class="song-title text-truncate">
+          <span>${song.name}</span>
+          ${song.explicit ? '<span class="explicit-banner"></span>' : ''}
+        </div>
+        <div class="song-artist text-truncate">${song.artist}</div>
+      </div>
+      <div class="song-album d-none d-lg-flex text-truncate px-2">${song.album}</div>
+      <div class="song-year d-none d-lg-flex px-2">${song.releaseYear}</div>
+      <div class="song-duration px-2">${song.duration}</div>
+    `;
+    listEl.append(itemEl);
+  });
+  containerEl.append(listEl);
+  return containerEl;
+};
+
+ui.removePlaylists = () => {
+  document.querySelector('#playlists-list').innerHTML = '';
 };
 
 /* 
   
-  PAGES
+  PAGE NAVIGATION
 
 */
 
-const loadSongs = () => {
-  console.log('trying to load default page');
+this.openPageSongAnalytics = () => {
   toggleCustomEventListeners(true);
-  openPage('Songs visualized', 'songs');
+  ui.openPage('Songs visualized', 'songs');
   loadDashboard(dashboards.kaggle);
 };
 
-const loadByGenre = () => {
-  openPage('Songs by genre', 'by-genre');
+this.openPageByGenre = () => {
+  ui.openPage('Songs by genre', 'by-genre');
   toggleCustomEventListeners(true);
   loadDashboard('4e745750-c474-4439-8374-b9baf7c1d894');
 };
 
-const loadCumulioFavorites = async () => {
-  openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
+this.openPageCumulioFavorites = async () => {
+  ui.openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
   toggleCustomEventListeners(true);
   loadDashboard(dashboards.cumulio);
 };
 
-const loadMyPlaylistsVisualized = () => {
+this.openPageMyPlaylistsVisualized = async () => {
   if (!user.loggedIn) return window.location.href = '/login';
-  openPage('My playlists visualized', 'my-playlists-viz');
+  ui.openPage('Select a playlist to visualize', 'my-playlists-viz');
+  const playlists = await spotifyFns.getPlaylists();
+  const playlistsEl = document.getElementById('playlists-list');
+  playlistsEl.innerHTML = '';
+  const container = ui.generatePlaylistCards(playlists, this.openPageVisualizePlaylist, {});
+  playlistsEl.append(container);
 };
 
-const loadCumulioPlaylist = async () => {
-  openPage('Cumul.io playlist', 'cumulio-playlist');
-  const playlistEl = await generatePlaylistSongList(CUMULIO_PLAYLIST);
+this.openPageCumulioPlaylist = async () => {
+  ui.openPage('Cumul.io playlist', 'cumulio-playlist');
+  const playlistEl = await ui.generateSongList(CUMULIO_PLAYLIST);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);
 };
 
-const loadMyPlaylist = () => {
+this.openPageMyPlaylists = async () => {
   if (!user.loggedIn) return window.location.href = '/login';
-  openPage('My playlists', 'my-playlists');
+  ui.openPage('My Playlists', 'my-playlists');
+  const playlists = await spotifyFns.getPlaylists();
+  const playlistsEl = document.getElementById('playlists-list');
+  playlistsEl.innerHTML = '';
+  const container = ui.generatePlaylistCards(playlists, this.openPagePlaylist, {});
+  playlistsEl.append(container);
+};
+
+this.openPageVisualizePlaylist = async (id) => {
+  const token = await getDashboardAuthorizationToken({ playlist_id: id });
+  ui.removePlaylists();
+  loadDashboard(dashboards.playlist, token.id, token.token);
+};
+
+this.openPagePlaylist = async (id) => {
+  ui.openPage('Playlist', 'my-playlists');
+  removeDashboard();
+  const playlistEl = await ui.generateSongList(id);
+  const container = document.getElementById('playlists-list');
+  container.innerHTML = '';
+  container.append(playlistEl);
 };
 
 /* 
@@ -119,7 +255,7 @@ const loadMyPlaylist = () => {
 
 
 const addToPlaylistSelector = async (name, id, artist) => {
-  const playlists = await getPlaylists();
+  const playlists = await spotifyFns.getPlaylists();
   const playlistsEl = document.getElementById('add-to-playlists');
   const modalTitle = document.getElementById('playlist-modal-label');
   const songName = name || 'song';
@@ -130,7 +266,7 @@ const addToPlaylistSelector = async (name, id, artist) => {
     const div = document.createElement('div');
     div.classList.add('col-6', 'col-lg-3', 'mb-3');
     div.onclick = async () => {
-      const response = await addToPlaylist(playlist.id, id);
+      const response = await spotifyFns.addToPlaylist(playlist.id, id);
       if (response.snapshot_id !== 'undefined') {
         const trackCounter = document.querySelector(`.playlist-${playlist.id} .track-counter`);
         trackCounter.textContent = `${playlist.tracks.total + 1} tracks`;
@@ -166,113 +302,6 @@ const succesfullyAddedToPlaylist = (song, id, playlist) => {
   document.getElementById('add-song-btn').onclick = async function () {
     await addToPlaylistSelector(song, id);
   };
-};
-
-
-/* 
-  
-  PLAYLIST PAGES
-
-*/
-
-
-const generatePlaylistCards = (playlists, callback, options) => {
-  const container = document.createElement('div');
-  container.classList.add('row');
-  playlists.forEach(playlist => {
-    const div = document.createElement('div');
-    div.classList.add('col-6', 'col-md-3', 'col-lg-2', 'mb-3');
-    div.onclick = () => { callback(playlist.id, options); };
-    div.innerHTML = `
-      <div class="card playlist-card">
-        <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
-        <div class="card-body">
-          <h5 class="card-title text-truncate">${playlist.name}</h2>
-          <h6 class="card-subtitle">${playlist.tracks.total} tracks</p>
-        </div>
-      </div>
-    `;
-    container.append(div);
-  });
-  return container;
-};
-
-const generatePlaylistSongList = async (playlistId, songClickcallback) => {
-  const containerEl = document.createElement('div');
-  containerEl.classList.add('w-100');
-  const headerEl = document.createElement('div');
-  headerEl.classList.add('playlist-header', 'd-flex', 'py-3');
-  headerEl.innerHTML = `
-    <div class="img-header"></div>
-    <div class="song-info-header px-2">Track</div>
-    <div class="song-album-header px-2">Album</div>
-    <div class="song-year-header px-2">Year</div>
-    <div class="song-duration-header px-2">Duration</div>
-  `;
-  containerEl.append(headerEl);
-  const listEl = document.createElement('ul');
-  listEl.classList.add('songs-list', 'list-unstyled', 'w-100', 'px-3', 'px-lg-0');
-  const songs = await getSongsinPlaylist(playlistId);
-  songs.forEach((song) => {
-    const itemEl = document.createElement('li');
-    itemEl.classList.add('song-item', 'd-flex', 'w-100', 'align-items-center');
-    itemEl.onclick = () => { songClickcallback(song.id); };
-    itemEl.innerHTML = `
-      <div class="song-img rounded"><img src="${song.image}"/></div>
-      <div class="song-info flex-grow-1 flex-shrink-1 px-2">
-        <div class="song-title text-truncate">
-          <span>${song.name}</span>
-          ${song.explicit ? '<span class="explicit-banner"></span>' : ''}
-        </div>
-        <div class="song-artist text-truncate">${song.artist}</div>
-      </div>
-      <div class="song-album d-none d-lg-flex text-truncate px-2">${song.album}</div>
-      <div class="song-year d-none d-lg-flex px-2">${song.releaseYear}</div>
-      <div class="song-duration px-2">${song.duration}</div>
-    `;
-    listEl.append(itemEl);
-  });
-  containerEl.append(listEl);
-  return containerEl;
-};
-
-const loadMyPlaylists = async () => {
-  openPage('My Playlists', 'my-playlists');
-  removeDashboard();
-  const playlists = await getPlaylists();
-  const playlistsEl = document.getElementById('playlists-list');
-  playlistsEl.innerHTML = '';
-  const container = generatePlaylistCards(playlists, loadPlaylist, {});
-  playlistsEl.append(container);
-};
-
-const loadMyPlaylistsViz = async () => {
-  openPage('Select a playlist to visualize', 'my-playlists-viz');
-  removeDashboard();
-  const playlists = await getPlaylists();
-  const playlistsEl = document.getElementById('playlists-list');
-  playlistsEl.innerHTML = '';
-  const container = generatePlaylistCards(playlists, visualizePlaylist, {});
-  playlistsEl.append(container);
-};
-
-const visualizePlaylist = async (id) => {
-  const token = await getDashboardAuthorizationToken({ playlist_id: id });
-  showPlaylistDashboard(token);
-};
-
-const loadPlaylist = async (id) => {
-  openPage('Playlist', 'my-playlists');
-  removeDashboard();
-  const playlistEl = await generatePlaylistSongList(id);
-  const container = document.getElementById('playlists-list');
-  container.innerHTML = '';
-  container.append(playlistEl);
-};
-
-const showPlaylistDashboard = async (token) => {
-  removePlaylists();
-  loadDashboard(dashboards.playlist, token.id, token.token);
 };
 
 /* 
@@ -322,7 +351,7 @@ const toggleCustomEventListeners = (boolean) => {
         playlistModal.show();
       }
       else if (event.data.event === 'song_info') {
-        await displaySongInfo(event.data.name.id.split('&id=')[0], event.data.name.id.split('&id=')[1]);
+        await spotifyFns.displaySongInfo(event.data.name.id.split('&id=')[0], event.data.name.id.split('&id=')[1]);
       }
     });
   }
@@ -370,58 +399,17 @@ const getDashboardAuthorizationToken = async (metadata) => {
 
 */
 
-const removePlaylists = () => {
-  document.querySelector('#playlists-list').innerHTML = '';
-};
 
-
-const getHashParams = () => {
+helper.getHashParams = () => {
   const hashParams = {};
   let e;
   const r = /([^&;=]+)=?([^&;]*)/g;
   const q = window.location.hash.substring(1);
+  // eslint-disable-next-line no-cond-assign
   while (e = r.exec(q)) {
     hashParams[e[1]] = decodeURIComponent(e[2]);
   }
   return hashParams;
-};
-
-const setTitle = (title) => {
-  document.querySelector('#page-title').innerText = title;
-};
-
-const setActiveMenuItem = (name) => {
-  const listItems = document.querySelectorAll('#menu-list li');
-  listItems.forEach((el) => el.classList.remove('active'));
-  document.querySelector(`#menu-list li[menu-item="${name}"]`).classList.add('active');
-};
-
-const setLoginStatus = (boolean, res) => {
-  if (res) user = res;
-  const loginBtnEl = document.getElementById('login-btn');
-  const smallLoginBtnEls = document.querySelectorAll('.login-btn-small');
-  const guardedEls = document.querySelectorAll('.guarded');
-  const userEl = document.getElementById('user');
-  const userImgEl = document.getElementById('user-img');
-  const userLetterEl = document.getElementById('user-letter');
-  if (boolean) {
-    user.loggedIn = true;
-    loginBtnEl.classList.add('d-none');
-    userEl.classList.remove('d-none');
-    smallLoginBtnEls.forEach((d) => d.classList.add('d-none'));
-    guardedEls.forEach((d) => d.classList.remove('guarded'));
-    userLetterEl.innerText = user && user.display_name ? user.display_name.substring(0, 1) : '';
-    if (user.images && user.images.length > 0) {
-      userImgEl.classList.remove('d-none');
-      userImgEl.src = user.images[0].url;
-    }
-    else userImgEl.classList.add('d-none');
-  }
-  else {
-    userEl.classList.add('d-none');
-    loginBtnEl.classList.remove('d-none');
-    smallLoginBtnEls.forEach((d) => d.classList.remove('d-none'));
-  }
 };
 
 const getSongUri = async (songName) => {
@@ -475,17 +463,7 @@ const makeCumulioRequest = async (endpoint, payload) => {
 
 */
 
-const getUserData = () => {
-  spotifyParams = getHashParams();
-  if (!spotifyParams.access_token) return setLoginStatus(false);
-  makeSpotifyRequest('https://api.spotify.com/v1/me', 'get')
-    .then(response => {
-      if (response.error) setLoginStatus(false);
-      else setLoginStatus(true, response);
-    });
-};
-
-const refreshToken = () => {
+spotifyFns.refreshToken = () => {
   const refresh_token = spotifyParams.refresh_token;
   const access_token = spotifyParams.access_token;
   return fetch('/refresh_token', {
@@ -501,11 +479,11 @@ const refreshToken = () => {
     .then(() => true);
 };
 
-const getPlaylists = async () => {
+spotifyFns.getPlaylists = async () => {
   let playlists = [];
   let response;
   do {
-    response = await makeSpotifyRequest(`https://api.spotify.com/v1/users/${user.id}/playlists?limit=50`, 'get');
+    response = await spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/users/${user.id}/playlists?limit=50`, 'get');
     playlists = playlists.concat(response.items.map(item => {
       return {
         image: item.images.find(img => img.height === 300 || img.height > 300 || img.url !== null),
@@ -520,11 +498,11 @@ const getPlaylists = async () => {
   return playlists;
 };
 
-const getSongsinPlaylist = async (playListId) => {
+spotifyFns.getSongsinPlaylist = async (playListId) => {
   let songs = [];
   let response;
   do {
-    response = await makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playListId}/tracks`, 'get');
+    response = await spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playListId}/tracks`, 'get');
     songs = songs.concat(response.items.map(item => {
       const track = item.track || {};
       const artists = track.artists ? track.artists : [];
@@ -548,23 +526,25 @@ const getSongsinPlaylist = async (playListId) => {
   return songs;
 };
 
-const getSongInfo = (id) => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
+spotifyFns.getSongInfo = (id) => {
+  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
     // eslint-disable-next-line no-console
     .then(response => console.log(response));
 };
 
-const playPlaylist = (id) => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${id}`, 'get')
+spotifyFns.playPlaylist = (id) => {
+  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${id}`, 'get')
+    // eslint-disable-next-line no-console
     .then(response => console.log(response));
 };
 
-const playSong = (id) => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
+spotifyFns.playSong = (id) => {
+  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
+    // eslint-disable-next-line no-console
     .then(response => console.log(response));
 };
 
-const makeSpotifyRequest = async (url, method) => {
+spotifyFns.makeSpotifyRequest = async (url, method) => {
   try {
     let res;
     do {
@@ -573,7 +553,7 @@ const makeSpotifyRequest = async (url, method) => {
         headers: { Authorization: `Bearer ${spotifyParams.access_token}`, 'Content-Type': 'application/json; charset=utf-8' }
       });
     }
-    while (res.status === 401 && await refreshToken());
+    while (res.status === 401 && await spotifyFns.refreshToken());
     return await res.json();
   }
   catch (err) {
@@ -582,12 +562,12 @@ const makeSpotifyRequest = async (url, method) => {
   }
 };
 
-const addToPlaylist = async (playlist_id, song_id) => {
-  return makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?uris=spotify%3Atrack%3A${song_id}`, 'post')
+spotifyFns.addToPlaylist = async (playlist_id, song_id) => {
+  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?uris=spotify%3Atrack%3A${song_id}`, 'post')
     .then(response => { return response; });
 };
 
-const displaySongInfo = async (song_name, song_id) => {
+spotifyFns.displaySongInfo = async (song_name, song_id) => {
   const token = await getDashboardAuthorizationToken({ song_id: [song_id] });
   loadDashboard('e92c869c-2a94-406f-b18f-d691fd627d34', token.id, token.token, '#song-info-dashboard');
   songInfoModal.show();
