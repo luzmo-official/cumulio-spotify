@@ -180,6 +180,28 @@ ui.removePlaylists = () => {
   document.querySelector('#playlists-list').innerHTML = '';
 };
 
+ui.displaySongInfo = async (songName, songId) => {
+  const token = await getDashboardAuthorizationToken({ song_id: [songId] });
+  loadDashboard('e92c869c-2a94-406f-b18f-d691fd627d34', token.id, token.token, '#song-info-dashboard');
+  songInfoModal.show();
+  const modalTitle = document.querySelector('#song-info-modal-label');
+  const modalPlayer = document.getElementById('song-player');
+  modalPlayer.src =`https://open.spotify.com/embed/track/${songId}`;
+  modalTitle.innerText = `${songName} Info`;
+  document.getElementById('add-song-btn').onclick = async function () {
+    await addToPlaylistSelector(songName, songId);
+    modalPlayer.src = '';
+    songInfoModal.hide();
+    playlistModal.show();
+  };
+};
+
+ui.closeSongInfoModal = () => {
+  const modalPlayer = document.getElementById('song-player');
+  modalPlayer.src = '';
+  songInfoModal.hide();
+};
+
 /* 
   
   PAGE NAVIGATION
@@ -233,7 +255,7 @@ this.openPageMyPlaylists = async () => {
 };
 
 this.openPageVisualizePlaylist = async (id) => {
-  const token = await getDashboardAuthorizationToken({ playlist_id: id });
+  const token = await getDashboardAuthorizationToken({ playlistId: id });
   ui.removePlaylists();
   loadDashboard(dashboards.playlist, token.id, token.token);
 };
@@ -351,7 +373,7 @@ const toggleCustomEventListeners = (boolean) => {
         playlistModal.show();
       }
       else if (event.data.event === 'song_info') {
-        await spotifyFns.displaySongInfo(event.data.name.id.split('&id=')[0], event.data.name.id.split('&id=')[1]);
+        await ui.displaySongInfo(event.data.name.id.split('&id=')[0], event.data.name.id.split('&id=')[1]);
       }
     });
   }
@@ -532,18 +554,6 @@ spotifyFns.getSongInfo = (id) => {
     .then(response => console.log(response));
 };
 
-spotifyFns.playPlaylist = (id) => {
-  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${id}`, 'get')
-    // eslint-disable-next-line no-console
-    .then(response => console.log(response));
-};
-
-spotifyFns.playSong = (id) => {
-  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/tracks/${id}`, 'get')
-    // eslint-disable-next-line no-console
-    .then(response => console.log(response));
-};
-
 spotifyFns.makeSpotifyRequest = async (url, method) => {
   try {
     let res;
@@ -562,20 +572,7 @@ spotifyFns.makeSpotifyRequest = async (url, method) => {
   }
 };
 
-spotifyFns.addToPlaylist = async (playlist_id, song_id) => {
-  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?uris=spotify%3Atrack%3A${song_id}`, 'post')
+spotifyFns.addToPlaylist = async (playlistId, songId) => {
+  return spotifyFns.makeSpotifyRequest(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?uris=spotify%3Atrack%3A${songId}`, 'post')
     .then(response => { return response; });
-};
-
-spotifyFns.displaySongInfo = async (song_name, song_id) => {
-  const token = await getDashboardAuthorizationToken({ song_id: [song_id] });
-  loadDashboard('e92c869c-2a94-406f-b18f-d691fd627d34', token.id, token.token, '#song-info-dashboard');
-  songInfoModal.show();
-  const modalTitle = document.querySelector('#song-info-modal-label');
-  modalTitle.innerText = `${song_name} Info`;
-  document.getElementById('add-song-btn').onclick = async function () {
-    await addToPlaylistSelector(song_name, song_id);
-    songInfoModal.hide();
-    playlistModal.show();
-  };
 };

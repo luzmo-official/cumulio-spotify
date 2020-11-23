@@ -122,15 +122,16 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="song-info-modal-label"></h5>
-            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close" aria-label="Close" onclick="ui.closeSongInfoModal()"></button>
           </div>
           <div class="modal-body">
             <div id="song-info">
               <div id="song-info-dashboard"></div>
+              <iframe id="song-player" width="100%" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary" onclick="ui.closeSongInfoModal()">Close</button>
             <button id="add-song-btn" type="button" class="btn btn-primary">Add to playlist</button>
           </div>
         </div>
