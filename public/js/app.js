@@ -216,7 +216,7 @@ this.openPageMyPlaylistsVisualized = async () => {
 
 this.openPageCumulioPlaylist = async () => {
   ui.openPage('Cumul.io playlist', 'cumulio-playlist');
-  const playlistEl = await ui.generateSongList(CUMULIO_PLAYLIST);
+  const playlistEl = await ui.generatePlaylistSongList(CUMULIO_PLAYLIST);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);
@@ -241,7 +241,7 @@ this.openPageVisualizePlaylist = async (id) => {
 this.openPagePlaylist = async (id) => {
   ui.openPage('Playlist', 'my-playlists');
   removeDashboard();
-  const playlistEl = await ui.generateSongList(id);
+  const playlistEl = await ui.generatePlaylistSongList(id);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);
