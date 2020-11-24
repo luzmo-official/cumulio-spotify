@@ -29,14 +29,16 @@ class Plugin {
             name: {en: 'Spotify Playlist selected by user'},
             description: {en: 'Song and playlist characteristics for selected playlist'},
             columns: [
-                    {id: 'song_name', name: {en: 'Song Name'}, type: 'hierarchy'},
-                    {id: 'song_id', name: {en: 'Song ID'}, type: 'hierarchy'},
+                    {id: 'song_name', name: {en: 'Name'}, type: 'hierarchy'},
+                    {id: 'song_id', name: {en: 'ID'}, type: 'hierarchy'},
                     {id: 'artist_name', name: {en: 'Main Artist Name'}, type: 'hierarchy'},
                     {id: 'release_date', name: {en: 'Release Date'}, type: 'datetime'},
                     {id: 'danceability', name: {en: 'Danceability'}, type: 'numeric'},
                     {id: 'energy', name: {en: 'Energy'}, type: 'numeric'},
                     {id: 'acousticness', name: {en: 'Acousticness'}, type: 'numeric'},
-                    {id: 'tempo', name: {en: 'Tempo'}, type: 'numeric'}
+                    {id: 'tempo', name: {en: 'Tempo (bpm)'}, type: 'numeric'},
+                    {id: 'name_id', name: {en: 'Name & ID'}, type: 'hierarchy'},
+                    {id: 'danceability_category', name: {en: 'Danceability_category'}, type: 'hierarchy'}
                 ]
         }];
       return res.status(200).json(datasets);
@@ -45,7 +47,13 @@ class Plugin {
     function get_audio_features(track, authorization_id){
       return t.makeSpotifyRequest(`https://api.spotify.com/v1/audio-features/${track.id}`, authorization_id)
         .then(features => {
-          return [track.name, track.id, track.album.artists[0].name, new Date(track.album.release_date).toISOString(), features.body.danceability, features.body.energy, features.body.acousticness, features.body.tempo];
+          let danceability_category = '';
+          if(features.body.danceability >= 0.8) danceability_category = '5. Even grandma is on the dancefloor!';
+          else if(features.body.danceability >= 0.6) danceability_category = '4. My legs are twitching';
+          else if(features.body.danceability >= 0.4) danceability_category = '3. I could dance to this...';
+          else if(features.body.danceability >= 0.3) danceability_category = '2. I need a few more beers for this';
+          else danceability_category = '1. Barely bopping my head';
+          return [track.name, track.id, track.album.artists[0].name, new Date(track.album.release_date).toISOString(), features.body.danceability, features.body.energy, features.body.acousticness, features.body.tempo, `${track.name}&id=${track.id}`, danceability_category];
         });
     }
     
@@ -61,7 +69,7 @@ class Plugin {
       if (req.body.user && req.body.user.metadata) {
         access_token = req.body.user.metadata.access_token || process.env.ACCESS_TOKEN;
         refresh_token = req.body.user.metadata.refresh_token || process.env.REFRESH_TOKEN;
-        playlist_id = req.body.user.metadata.playlist_id || process.env.PLAYLIST_ID;
+        playlist_id = req.body.user.metadata.playlistId || process.env.PLAYLIST_ID;
       }
 
       // Save credentials
