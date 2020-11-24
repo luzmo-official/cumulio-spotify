@@ -80,6 +80,7 @@ body {
 .menu-item,
 #sidebar li {
   display: flex;
+  font-size: 0.875rem;
   align-items: center;
   justify-content: flex-start;
   line-height: 2.5rem;

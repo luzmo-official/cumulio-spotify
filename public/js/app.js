@@ -116,13 +116,13 @@ ui.setActiveMenuItem = (name) => {
   document.querySelector(`.menu-item[menu-item="${name}"]`).classList.add('active');
 };
 
-ui.generatePlaylistCards = (playlists, callback, options) => {
+ui.generatePlaylistCards = (playlists, callback) => {
   const container = document.createElement('div');
   container.classList.add('row');
   playlists.forEach(playlist => {
     const div = document.createElement('div');
     div.classList.add('col-6', 'col-md-3', 'col-lg-2', 'mb-3');
-    div.onclick = () => { callback(playlist.id, options); };
+    div.onclick = () => { callback(playlist); };
     div.innerHTML = `
       <div class="card playlist-card">
         <img src="${ playlist.image ? playlist.image.url : ''}" class="card-img-top"/>
@@ -137,11 +137,16 @@ ui.generatePlaylistCards = (playlists, callback, options) => {
   return container;
 };
 
-ui.generatePlaylistSongList = async (playlistId) => {
+ui.generatePlaylistSongList = async (playlist) => {
   const containerEl = document.createElement('div');
-  containerEl.classList.add('w-100');
+  containerEl.classList.add('w-100', 'text-right');
+  const visualizeButtonEl = document.createElement('button');
+  visualizeButtonEl.classList.add('btn', 'btn-primary', 'mb-3');
+  visualizeButtonEl.onclick = () => this.openPageVisualizePlaylist(playlist.id);
+  visualizeButtonEl.innerText = 'Visualize';
+  containerEl.append(visualizeButtonEl);
   const headerEl = document.createElement('div');
-  headerEl.classList.add('playlist-header', 'd-flex', 'py-3');
+  headerEl.classList.add('playlist-header', 'text-left', 'd-flex', 'py-3');
   headerEl.innerHTML = `
     <div class="img-header"></div>
     <div class="song-info-header px-2">Track</div>
@@ -151,8 +156,8 @@ ui.generatePlaylistSongList = async (playlistId) => {
   `;
   containerEl.append(headerEl);
   const listEl = document.createElement('ul');
-  listEl.classList.add('songs-list', 'list-unstyled', 'w-100', 'px-3', 'px-lg-0');
-  const songs = await spotifyFns.getSongsinPlaylist(playlistId);
+  listEl.classList.add('songs-list', 'list-unstyled', 'w-100', 'text-left', 'px-3', 'px-lg-0');
+  const songs = await spotifyFns.getSongsinPlaylist(playlist.id);
   songs.forEach((song) => {
     const itemEl = document.createElement('li');
     itemEl.classList.add('song-item', 'd-flex', 'w-100', 'align-items-center');
@@ -233,13 +238,13 @@ this.openPageMyPlaylistsVisualized = async () => {
   const playlists = await spotifyFns.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
-  const container = ui.generatePlaylistCards(playlists, this.openPageVisualizePlaylist, {});
+  const container = ui.generatePlaylistCards(playlists, this.openPageVisualizePlaylist);
   playlistsEl.append(container);
 };
 
 this.openPageCumulioPlaylist = async () => {
   ui.openPage('Cumul.io playlist', 'cumulio-playlist');
-  const playlistEl = await ui.generatePlaylistSongList(CUMULIO_PLAYLIST);
+  const playlistEl = await ui.generatePlaylistSongList({id: CUMULIO_PLAYLIST, name: 'Cumul.io Playlist'});
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);
@@ -251,20 +256,21 @@ this.openPageMyPlaylists = async () => {
   const playlists = await spotifyFns.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
-  const container = ui.generatePlaylistCards(playlists, this.openPagePlaylist, {});
+  const container = ui.generatePlaylistCards(playlists, this.openPagePlaylist);
   playlistsEl.append(container);
 };
 
-this.openPageVisualizePlaylist = async (id) => {
-  const token = await getDashboardAuthorizationToken({ playlistId: id });
+this.openPageVisualizePlaylist = async (playlist) => {
+  ui.openPage(playlist.name || 'Playlist', 'my-playlists-viz');
+  const token = await getDashboardAuthorizationToken({ playlistId: playlist.id });
   ui.removePlaylists();
   loadDashboard(dashboards.playlist, token.id, token.token);
 };
 
-this.openPagePlaylist = async (id) => {
-  ui.openPage('Playlist', 'my-playlists');
+this.openPagePlaylist = async (playlist) => {
+  ui.openPage(playlist.name || 'Playlist', 'my-playlists');
   removeDashboard();
-  const playlistEl = await ui.generatePlaylistSongList(id);
+  const playlistEl = await ui.generatePlaylistSongList(playlist);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);
