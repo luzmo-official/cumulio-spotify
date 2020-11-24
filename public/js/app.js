@@ -16,7 +16,9 @@ let activeDashboard = null;
 const dashboards = {
   kaggle: '8edf0005-6493-48e1-9689-5740a1829cdd',
   playlist: '12c7c734-562e-4f8f-9500-16dc59c38adc',
-  cumulio: 'f3555bce-a874-4924-8d08-136169855807'
+  cumulio: 'f3555bce-a874-4924-8d08-136169855807',
+  cumulio_songInfo: 'e92c869c-2a94-406f-b18f-d691fd627d34',
+  kaggle_songInfo: '3f5d2cb6-9a8a-43e4-83d4-9c3dae66a194'
 };
 let activeToken = {};
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
@@ -180,9 +182,11 @@ ui.removePlaylists = () => {
   document.querySelector('#playlists-list').innerHTML = '';
 };
 
-ui.displaySongInfo = async (songName, songId) => {
+ui.displaySongInfo = async (songName, songId, origin) => {
+  var dashboardId = (origin == dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
+
   const token = await getDashboardAuthorizationToken({ song_id: [songId] });
-  loadDashboard('e92c869c-2a94-406f-b18f-d691fd627d34', token.id, token.token, '#song-info-dashboard');
+  loadDashboard(dashboardId, token.id, token.token, '#song-info-dashboard');
   songInfoModal.show();
   const modalTitle = document.querySelector('#song-info-modal-label');
   const modalPlayer = document.getElementById('song-player');
@@ -356,24 +360,36 @@ const removeDashboard = () => {
   Cumulio.removeDashboard(activeDashboard);
 };
 
+const getSong = (event) => {
+  let song_name;
+  let song_id;
+  if (event.data.columns === undefined)
+  {
+    song_name = event.data.name.id.split('&id=')[0];
+    song_id = event.data.name.id.split('&id=')[1];
+  }
+  else
+  {
+    song_name = event.data.columns[0].value;
+    song_id = event.data.columns[event.data.columns.length - 1].value;
+  }
+
+  return {id: song_id, name: song_name};
+}
+
 const toggleCustomEventListeners = (boolean) => {
   if (customEventsActive && !boolean) {
     Cumulio.offCustomEvent();
   }
   else if (!customEventsActive && boolean) {
     Cumulio.onCustomEvent(async (event) => {
+      const song = getSong(event);
       if (event.data.event === 'add_to_playlist') {
-        if (event.data.columns === undefined) {
-          getSongUri(event.data.name.id);
-          await addToPlaylistSelector(event.data.name.id.split('&id=')[0], event.data.name.id.split('&id=')[1]);
-        }
-        else if (event.data.columns !== undefined) {
-          await addToPlaylistSelector(event.data.columns[0].value, event.data.columns[7].value);
-        }
+        await addToPlaylistSelector(song.name, song.id);
         playlistModal.show();
       }
       else if (event.data.event === 'song_info') {
-        await ui.displaySongInfo(event.data.name.id.split('&id=')[0], event.data.name.id.split('&id=')[1]);
+        await ui.displaySongInfo(song.name, song.id, event.dashboard);
       }
     });
   }
