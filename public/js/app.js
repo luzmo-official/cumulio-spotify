@@ -20,7 +20,6 @@ const dashboards = {
   cumulio_songInfo: 'e92c869c-2a94-406f-b18f-d691fd627d34',
   kaggle_songInfo: '3f5d2cb6-9a8a-43e4-83d4-9c3dae66a194'
 };
-let activeToken = {};
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});
 
@@ -113,9 +112,9 @@ ui.setTitle = (title) => {
 };
 
 ui.setActiveMenuItem = (name) => {
-  const listItems = document.querySelectorAll('#menu-list li');
+  const listItems = document.querySelectorAll('.menu-item');
   listItems.forEach((el) => el.classList.remove('active'));
-  document.querySelector(`#menu-list li[menu-item="${name}"]`).classList.add('active');
+  document.querySelector(`.menu-item[menu-item="${name}"]`).classList.add('active');
 };
 
 ui.generatePlaylistCards = (playlists, callback, options) => {
@@ -139,7 +138,7 @@ ui.generatePlaylistCards = (playlists, callback, options) => {
   return container;
 };
 
-ui.generatePlaylistSongList = async (playlistId, songClickcallback) => {
+ui.generatePlaylistSongList = async (playlistId) => {
   const containerEl = document.createElement('div');
   containerEl.classList.add('w-100');
   const headerEl = document.createElement('div');
@@ -158,7 +157,7 @@ ui.generatePlaylistSongList = async (playlistId, songClickcallback) => {
   songs.forEach((song) => {
     const itemEl = document.createElement('li');
     itemEl.classList.add('song-item', 'd-flex', 'w-100', 'align-items-center');
-    itemEl.onclick = () => { songClickcallback(song.id); };
+    itemEl.onclick = () => { ui.displaySongInfo(song, dashboards.cumulio); };
     itemEl.innerHTML = `
       <div class="song-img rounded"><img src="${song.image}"/></div>
       <div class="song-info flex-grow-1 flex-shrink-1 px-2">
@@ -182,18 +181,17 @@ ui.removePlaylists = () => {
   document.querySelector('#playlists-list').innerHTML = '';
 };
 
-ui.displaySongInfo = async (songName, songId, origin) => {
-  var dashboardId = (origin == dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
-
-  const token = await getDashboardAuthorizationToken({ song_id: [songId] });
+ui.displaySongInfo = async (song, origin) => {
+  const dashboardId = (origin === dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
+  const token = await getDashboardAuthorizationToken({ song_id: [song.id] });
   loadDashboard(dashboardId, token.id, token.token, '#song-info-dashboard');
   songInfoModal.show();
   const modalTitle = document.querySelector('#song-info-modal-label');
   const modalPlayer = document.getElementById('song-player');
-  modalPlayer.src =`https://open.spotify.com/embed/track/${songId}`;
-  modalTitle.innerText = `${songName} Info`;
+  modalPlayer.src =`https://open.spotify.com/embed/track/${song.id}`;
+  modalTitle.innerText = `${song.name} - ${song.artist}`;
   document.getElementById('add-song-btn').onclick = async function () {
-    await addToPlaylistSelector(songName, songId);
+    await addToPlaylistSelector(song.name, song.id);
     modalPlayer.src = '';
     songInfoModal.hide();
     playlistModal.show();
@@ -273,6 +271,18 @@ this.openPagePlaylist = async (id) => {
   container.append(playlistEl);
 };
 
+this.openPageInformation = async () => {
+  ui.openPage('How we built it?', 'information');
+  removeDashboard();
+  const container = document.getElementById('playlists-list');
+  container.innerHTML = `
+    <div class="d-block">
+      <div>Lorum ipsum... blood sweat & tears and ...</div>
+      <div><img src="images/spotify_logo_with_text.svg" height="48"/></div>
+    </div>
+  `;
+};
+
 /* 
   
   MODAL FUNCTIONS
@@ -340,7 +350,6 @@ const loadDashboard = (id, key, token, container) => {
   if (id) {
     dashboardOptions.dashboardId = id;
   }
-  activeToken = null; // Reset active dashboard token
   //use container if available
   if (container) {
     dashboardOptions.container = container;
@@ -349,7 +358,6 @@ const loadDashboard = (id, key, token, container) => {
   if (key && token) {
     dashboardOptions.key = key;
     dashboardOptions.token = token;
-    activeToken = { key: key, token: token };
   }
 
   // add the dashboard to the #dashboard-container element
@@ -375,7 +383,7 @@ const getSong = (event) => {
   }
 
   return {id: song_id, name: song_name};
-}
+};
 
 const toggleCustomEventListeners = (boolean) => {
   if (customEventsActive && !boolean) {
@@ -389,7 +397,7 @@ const toggleCustomEventListeners = (boolean) => {
         playlistModal.show();
       }
       else if (event.data.event === 'song_info') {
-        await ui.displaySongInfo(song.name, song.id, event.dashboard);
+        await ui.displaySongInfo(song, event.dashboard);
       }
     });
   }
@@ -448,51 +456,6 @@ helper.getHashParams = () => {
     hashParams[e[1]] = decodeURIComponent(e[2]);
   }
   return hashParams;
-};
-
-const getSongUri = async (songName) => {
-  if (activeToken) {
-    // If we have an active token we used our plugin as a data source.
-    // Let's re-use the token when fetching the song's ID so we don't need to
-    // create an authorization token twice.
-    await makeCumulioRequest('data', {
-      key: activeToken.key,
-      token: activeToken.token,
-      action: 'get',
-      find: {
-        dimensions: [{
-          column_id: '',
-          dataset_id: ''
-        }],
-        where: [{
-          expression: '? = ?',
-          parameters: [
-            {
-              column_id: '',
-              dataset_id: ''
-            },
-            songName
-          ]
-        }]
-      }
-    });
-  }
-  else {
-    // No active token -> using a public dashboard. The only way to get the song ID is via backend.
-    const res = await fetch(`song_uri?songName=${songName}&type=cumulioplaylist`);
-    await res.json();
-  }
-};
-
-const makeCumulioRequest = async (endpoint, payload) => {
-  const apiURL = 'https://api.cumul.io/0.1.0/';
-  payload.version = '0.1.0';
-  const res = await fetch(apiURL + endpoint, {
-    method: 'POST',
-    headers: { 'Content-type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  return await res.json();
 };
 
 /* 
