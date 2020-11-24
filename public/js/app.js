@@ -183,7 +183,7 @@ ui.removePlaylists = () => {
 
 ui.displaySongInfo = async (song, origin) => {
   const dashboardId = (origin === dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
-  const token = await getDashboardAuthorizationToken({ song_id: [song.id] });
+  const token = await getDashboardAuthorizationToken({ songId: [song.id] });
   loadDashboard(dashboardId, token.id, token.token, '#song-info-dashboard');
   songInfoModal.show();
   const modalTitle = document.querySelector('#song-info-modal-label');
@@ -278,7 +278,7 @@ this.openPageInformation = async () => {
   container.innerHTML = `
     <div class="d-block">
       <div>Lorum ipsum... blood sweat & tears and ...</div>
-      <div><img src="images/spotify_logo_with_text.svg" height="48"/></div>
+      <div>Spotify API</div>
     </div>
   `;
 };
@@ -295,8 +295,7 @@ const addToPlaylistSelector = async (name, id, artist) => {
   const playlistsEl = document.getElementById('add-to-playlists');
   const modalTitle = document.getElementById('playlist-modal-label');
   const songName = name || 'song';
-  // const songArtist = artist;
-  modalTitle.innerHTML = `Add <i><b>${songName}</b></i> to`;
+  modalTitle.innerHTML = `Add <i><b>${songName}${artist ? ' - ' + artist : ''}</b></i> to`;
   playlistsEl.innerHTML = '';
   playlists.forEach(playlist => {
     const div = document.createElement('div');
@@ -332,7 +331,7 @@ const succesfullyAddedToPlaylist = (song, id, playlist) => {
   // TODO add content & style
   modalTitle.innerText = 'Succes';
   modalBody.innerHTML = `
-    <div>Succesfully added ${song} to playlist</div>
+    <div>Succesfully added ${song} to ${playlist.name}</div>
     <button id="add-song-btn" type="button" class="btn btn-primary">Add to other playlist</button>
   `;
   document.getElementById('add-song-btn').onclick = async function () {
@@ -347,13 +346,8 @@ const succesfullyAddedToPlaylist = (song, id, playlist) => {
 */
 
 const loadDashboard = (id, key, token, container) => {
-  if (id) {
-    dashboardOptions.dashboardId = id;
-  }
-  //use container if available
-  if (container) {
-    dashboardOptions.container = container;
-  }
+  dashboardOptions.dashboardId = id;
+  dashboardOptions.container = container || '#dashboard-container';
   // use tokens if available
   if (key && token) {
     dashboardOptions.key = key;
@@ -369,20 +363,19 @@ const removeDashboard = () => {
 };
 
 const getSong = (event) => {
-  let song_name;
-  let song_id;
-  if (event.data.columns === undefined)
-  {
-    song_name = event.data.name.id.split('&id=')[0];
-    song_id = event.data.name.id.split('&id=')[1];
+  let songName;
+  let songArtist;
+  let songId;
+  if (event.data.columns === undefined) {
+    songName = event.data.name.id.split('&id=')[0];
+    songId = event.data.name.id.split('&id=')[1];
   }
-  else
-  {
-    song_name = event.data.columns[0].value;
-    song_id = event.data.columns[event.data.columns.length - 1].value;
+  else {
+    songName = event.data.columns[0].value;
+    songArtist = event.data.columns[0].value;
+    songId = event.data.columns[event.data.columns.length - 1].value;
   }
-
-  return {id: song_id, name: song_name};
+  return {id: songId, name: songName, artist: songArtist};
 };
 
 const toggleCustomEventListeners = (boolean) => {
@@ -407,9 +400,6 @@ const toggleCustomEventListeners = (boolean) => {
 // Function to retrieve the dashboard authorization token from the platform's backend
 const getDashboardAuthorizationToken = async (metadata) => {
   try {
-    // Get the platform access credentials from the current logged in user
-    // const accessCredentials = await auth0.getTokenSilently();
-
     const body = {
       access_token: spotifyParams.access_token,
     };
@@ -545,10 +535,8 @@ spotifyFns.makeSpotifyRequest = async (url, method) => {
     while (res.status === 401 && await spotifyFns.refreshToken());
     return await res.json();
   }
-  catch (err) {
-    // eslint-disable-next-line no-console
-    console.log(err);
-  }
+  // eslint-disable-next-line no-console
+  catch (err) { console.log(err); }
 };
 
 spotifyFns.addToPlaylist = async (playlistId, songId) => {
