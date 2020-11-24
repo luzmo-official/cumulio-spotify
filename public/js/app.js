@@ -140,9 +140,14 @@ ui.generatePlaylistCards = (playlists, callback, options) => {
 
 ui.generatePlaylistSongList = async (playlistId) => {
   const containerEl = document.createElement('div');
-  containerEl.classList.add('w-100');
+  containerEl.classList.add('w-100', 'text-right');
+  const visualizeButtonEl = document.createElement('button');
+  visualizeButtonEl.classList.add('btn', 'btn-primary', 'mb-3');
+  visualizeButtonEl.onclick = () => this.openPageVisualizePlaylist(playlistId);
+  visualizeButtonEl.innerText = 'Visualize';
+  containerEl.append(visualizeButtonEl);
   const headerEl = document.createElement('div');
-  headerEl.classList.add('playlist-header', 'd-flex', 'py-3');
+  headerEl.classList.add('playlist-header', 'text-left', 'd-flex', 'py-3');
   headerEl.innerHTML = `
     <div class="img-header"></div>
     <div class="song-info-header px-2">Track</div>
@@ -152,7 +157,7 @@ ui.generatePlaylistSongList = async (playlistId) => {
   `;
   containerEl.append(headerEl);
   const listEl = document.createElement('ul');
-  listEl.classList.add('songs-list', 'list-unstyled', 'w-100', 'px-3', 'px-lg-0');
+  listEl.classList.add('songs-list', 'list-unstyled', 'w-100', 'text-left', 'px-3', 'px-lg-0');
   const songs = await spotifyFns.getSongsinPlaylist(playlistId);
   songs.forEach((song) => {
     const itemEl = document.createElement('li');
@@ -257,6 +262,7 @@ this.openPageMyPlaylists = async () => {
 };
 
 this.openPageVisualizePlaylist = async (id) => {
+  console.log(id);
   const token = await getDashboardAuthorizationToken({ playlistId: id });
   ui.removePlaylists();
   loadDashboard(dashboards.playlist, token.id, token.token);
