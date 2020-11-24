@@ -4,7 +4,6 @@
 
 */
 
-
 const CUMULIO_PLAYLIST = '0GIFfPsuHdZUQGrGvKiXSm';
 let user = {};
 const spotifyFns = {};
@@ -189,7 +188,7 @@ ui.displaySongInfo = async (song, origin) => {
   const modalTitle = document.querySelector('#song-info-modal-label');
   const modalPlayer = document.getElementById('song-player');
   modalPlayer.src =`https://open.spotify.com/embed/track/${song.id}`;
-  modalTitle.innerText = `${song.name} - ${song.artist}`;
+  modalTitle.innerText = song.artist ? `${song.name} - ${song.artist}` : `${song.name} - ${song.artist}`;
   document.getElementById('add-song-btn').onclick = async function () {
     await addToPlaylistSelector(song.name, song.id);
     modalPlayer.src = '';
