@@ -262,7 +262,6 @@ this.openPageMyPlaylists = async () => {
 };
 
 this.openPageVisualizePlaylist = async (id) => {
-  console.log(id);
   const token = await getDashboardAuthorizationToken({ playlistId: id });
   ui.removePlaylists();
   loadDashboard(dashboards.playlist, token.id, token.token);
