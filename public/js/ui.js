@@ -1,7 +1,7 @@
 import {dashboards, removeDashboard, getDashboardAuthorizationToken, loadDashboard, CUMULIO_PLAYLIST} from './app.js';
 
-export const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
-export const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});
+const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
+const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});
 
 class UI {
 
@@ -174,6 +174,7 @@ class UI {
   
       playlistsEl.append(div);
     });
+    playlistModal.show();
   }
   
   succesfullyAddedToPlaylist(song, id, playlist){

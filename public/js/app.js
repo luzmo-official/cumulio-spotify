@@ -4,7 +4,7 @@
 
 */
 import {Spotify} from './spotify.js';
-import {playlistModal, UI} from './ui.js';
+import {UI} from './ui.js';
 
 export const CUMULIO_PLAYLIST = '0GIFfPsuHdZUQGrGvKiXSm';
 const spotify = new Spotify();
@@ -173,7 +173,6 @@ const toggleCustomEventListeners = (boolean) => {
       const song = getSong(event);
       if (event.data.event === 'add_to_playlist') {
         await ui.addToPlaylistSelector(song.name, song.id);
-        playlistModal.show();
       }
       else if (event.data.event === 'song_info') {
         await ui.displaySongInfo(song, event.dashboard);
@@ -214,13 +213,11 @@ export const getDashboardAuthorizationToken = async (metadata) => {
   }
 };
 
-
 /* 
   
   HELPER FUNCTIONS
 
 */
-
 
 function getHashParams() {
   const hashParams = {};
