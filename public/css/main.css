@@ -369,6 +369,17 @@ body {
   }
 }
 
+#success-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#add-song-again-btn {
+  width: auto;
+  margin-top: 20px;
+}
+
 /* bootstrap overrides */
 .btn.btn-primary {
   background-color: #18c659;

@@ -181,15 +181,29 @@ class UI {
     const t = this;
     const modalTitle = document.querySelector('#playlist-modal .modal-title');
     const modalBody = document.getElementById('add-to-playlists');
+    playlistModal._dialog.classList.remove('modal-lg');
+
     // TODO add content & style
     modalTitle.innerText = 'Succes';
     modalBody.innerHTML = `
-      <div>Succesfully added ${song} to ${playlist.name}</div>
-      <button id="add-song-btn" type="button" class="btn btn-primary">Add to other playlist</button>
+    <div id="success-info">
+      <div>Succesfully added <b><i>${song}</i></b> to <b>${playlist.name}</b>!</div>
+      <button id="add-song-again-btn" type="button" class="btn btn-primary">Add to other playlist</button>
+    </div>
     `;
-    document.getElementById('add-song-btn').onclick = async function () {
+    document.getElementById('add-song-again-btn').onclick = async function () {
+      if (!playlistModal._dialog.classList.contains('modal-lg')) {
+        playlistModal._dialog.classList.add('modal-lg');
+      }
       await t.addToPlaylistSelector(song, id);
     };
+  }
+
+  resetModalWidth() {
+    console.log('???')
+    if (!playlistModal._dialog.classList.contains('modal-lg')) {
+      playlistModal._dialog.classList.add('modal-lg');
+    }
   }
 
   async displaySongInfo(song, origin) {
