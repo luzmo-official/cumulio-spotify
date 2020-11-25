@@ -50,6 +50,7 @@ window.onload = async () => {
 };
 
 window.closeSongInfoModal = () => ui.closeSongInfoModal();
+window.resetModalWidth = () => ui.resetModalWidth();
 
 window.openPageSongAnalytics = () => {
   toggleCustomEventListeners(true);
