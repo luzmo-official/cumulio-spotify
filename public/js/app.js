@@ -12,12 +12,24 @@ const ui = new UI(spotify);
 
 let customEventsActive = false;
 let activeDashboard = null;
+
 export const dashboards = {
   kaggle: '8edf0005-6493-48e1-9689-5740a1829cdd',
   playlist: 'b9254071-560a-4140-9d20-91ec388d35ab',
   cumulio: 'f3555bce-a874-4924-8d08-136169855807',
   cumulio_songInfo: 'e92c869c-2a94-406f-b18f-d691fd627d34',
   kaggle_songInfo: '3f5d2cb6-9a8a-43e4-83d4-9c3dae66a194'
+};
+
+const pageInfo = {
+  songs: {title: 'Songs visualized' , name: 'songs'},
+  genre: {title: 'Songs by genre', name: 'by-genre'},
+  cumulio_visualized: {title: 'Cumul.io playlist visualized', name: 'cumulio-playlist-viz'},
+  cumulio_playlist: {title: 'Cumul.io playlist', name: 'cumulio-playlist'},
+  select_playlist: {title: 'Select a playlist to visualize', name: 'my-playlists-viz'},
+  my_playlist: {title: 'My Playlists', name: 'my-playlists'},
+  how: {title: 'How we built it?', name: 'information'}
+    
 };
 
 const dashboardOptions = {
@@ -53,25 +65,25 @@ window.closeSongInfoModal = () => ui.closeSongInfoModal();
 
 window.openPageSongAnalytics = () => {
   toggleCustomEventListeners(true);
-  ui.openPage('Songs visualized', 'songs');
+  ui.openPage(pageInfo.songs.title, pageInfo.songs.name);
   loadDashboard(dashboards.kaggle);
 };
 
 window.openPageByGenre = () => {
-  ui.openPage('Songs by genre', 'by-genre');
+  ui.openPage(pageInfo.genre.title, pageInfo.genre.name);
   toggleCustomEventListeners(true);
   loadDashboard('4e745750-c474-4439-8374-b9baf7c1d894');
 };
 
 window.openPageCumulioFavorites = async () => {
-  ui.openPage('Cumul.io playlist visualized', 'cumulio-playlist-viz');
+  ui.openPage(pageInfo.cumulio_visualized.title, pageInfo.cumulio_visualized.name);
   toggleCustomEventListeners(true);
   loadDashboard(dashboards.cumulio);
 };
 
 window.openPageMyPlaylistsVisualized = async () => {
   if (!spotify.user.loggedIn) return window.location.href = '/login';
-  ui.openPage('Select a playlist to visualize', 'my-playlists-viz');
+  ui.openPage(pageInfo.select_playlist.title, pageInfo.select_playlist.name);
   const playlists = await spotify.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
@@ -80,7 +92,7 @@ window.openPageMyPlaylistsVisualized = async () => {
 };
 
 window.openPageCumulioPlaylist = async () => {
-  ui.openPage('Cumul.io playlist', 'cumulio-playlist');
+  ui.openPage(pageInfo.cumulio_playlist.title, pageInfo.cumulio_playlist.name);
   const playlistEl = await ui.generatePlaylistSongList({id: CUMULIO_PLAYLIST, name: 'Cumul.io Playlist'});
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
@@ -89,7 +101,7 @@ window.openPageCumulioPlaylist = async () => {
 
 window.openPageMyPlaylists = async () => {
   if (!spotify.user.loggedIn) return window.location.href = '/login';
-  ui.openPage('My Playlists', 'my-playlists');
+  ui.openPage(pageInfo.my_playlist.title, pageInfo.my_playlist.name);
   const playlists = await spotify.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
@@ -98,14 +110,14 @@ window.openPageMyPlaylists = async () => {
 };
 
 window.openPageVisualizePlaylist = async (playlist) => {
-  ui.openPage(playlist.name || 'Playlist', 'my-playlists-viz');
+  ui.openPage(playlist.name || 'Playlist', pageInfo.select_playlist.name);
   const token = await getDashboardAuthorizationToken({ playlistId: playlist.id });
   ui.removePlaylists();
   loadDashboard(dashboards.playlist, token.id, token.token);
 };
 
 window.openPagePlaylist = async (playlist) => {
-  ui.openPage(playlist.name || 'Playlist', 'my-playlists');
+  ui.openPage(playlist.name || 'Playlist', pageInfo.my_playlist.name);
   removeDashboard();
   const playlistEl = await ui.generatePlaylistSongList(playlist);
   const container = document.getElementById('playlists-list');
@@ -114,7 +126,7 @@ window.openPagePlaylist = async (playlist) => {
 };
 
 window.openPageInformation = async () => {
-  ui.openPage('How we built it?', 'information');
+  ui.openPage(pageInfo.how.title, pageInfo.how.name);
   removeDashboard();
   const container = document.getElementById('playlists-list');
   container.innerHTML = `
