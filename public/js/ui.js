@@ -183,7 +183,6 @@ class UI {
     const modalBody = document.getElementById('add-to-playlists');
     playlistModal._dialog.classList.remove('modal-lg');
 
-    // TODO add content & style
     modalTitle.innerText = 'Succes';
     modalBody.innerHTML = `
     <div id="success-info">
@@ -200,7 +199,6 @@ class UI {
   }
 
   resetModalWidth() {
-    console.log('???')
     if (!playlistModal._dialog.classList.contains('modal-lg')) {
       playlistModal._dialog.classList.add('modal-lg');
     }
