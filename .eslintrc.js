@@ -13,7 +13,8 @@ module.exports = {
     'SharedArrayBuffer': 'readonly'
   },
   'parserOptions': {
-    'ecmaVersion': 2018
+    'ecmaVersion': 2018,
+    'sourceType': 'module'
   },
   'rules': {
     'no-var': 2,
@@ -24,10 +25,6 @@ module.exports = {
     'indent': [
       'error',
       2
-    ],
-    'linebreak-style': [
-      'error',
-      'unix'
     ],
     'quotes': [
       'error',

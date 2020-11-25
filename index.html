@@ -126,7 +126,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="song-info-modal-label"></h5>
-            <button type="button" class="btn-close" aria-label="Close" onclick="ui.closeSongInfoModal()"></button>
+            <button type="button" class="btn-close" aria-label="Close" onclick="closeSongInfoModal()"></button>
           </div>
           <div class="modal-body">
             <div id="song-info">
@@ -135,14 +135,14 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="ui.closeSongInfoModal()">Close</button>
+            <button type="button" class="btn btn-secondary" onclick="closeSongInfoModal()">Close</button>
             <button id="add-song-btn" type="button" class="btn btn-primary">Add to playlist</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <script src="/js/app.js"></script>
+  <script type="module" src="/js/app.js"></script>
   <!-- using Font Awesome for this example -->
   <script src="https://use.fontawesome.com/releases/v5.15.1/js/all.js" data-auto-replace-svg="nest"></script>
 </body>
