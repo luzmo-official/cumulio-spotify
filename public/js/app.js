@@ -23,7 +23,6 @@ export const dashboards = {
 
 const pageInfo = {
   songs: {title: 'Songs visualized' , name: 'songs'},
-  genre: {title: 'Songs by genre', name: 'by-genre'},
   cumulio_visualized: {title: 'Cumul.io playlist visualized', name: 'cumulio-playlist-viz'},
   cumulio_playlist: {title: 'Cumul.io playlist', name: 'cumulio-playlist'},
   select_playlist: {title: 'Select a playlist to visualize', name: 'my-playlists-viz'},
@@ -68,12 +67,6 @@ window.openPageSongAnalytics = () => {
   toggleCustomEventListeners(true);
   ui.openPage(pageInfo.songs.title, pageInfo.songs.name);
   loadDashboard(dashboards.kaggle);
-};
-
-window.openPageByGenre = () => {
-  ui.openPage(pageInfo.genre.title, pageInfo.genre.name);
-  toggleCustomEventListeners(true);
-  loadDashboard('4e745750-c474-4439-8374-b9baf7c1d894');
 };
 
 window.openPageCumulioFavorites = async () => {
