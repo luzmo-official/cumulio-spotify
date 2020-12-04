@@ -1,0 +1,145 @@
+<html>
+
+<head>
+  <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
+
+  <!-- bootstrap -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css"
+    integrity="sha384-DhY6onE6f3zzKbjUPRc2hOzGAdEf4/Dz+WJwBvEYL/lkkIsI3ihufq9hk9K4lVoK" crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.bundle.min.js"
+    integrity="sha384-BOsAfwzjNJHrJ8cZidOg56tcQWfp6y72vEJ8xQ9w6Quywb24iOsW913URv1IS4GD"
+    crossorigin="anonymous"></script>
+
+  <!-- cumul.io embedding -->
+  <script src="https://cdn-a.cumul.io/js/cumulio.min.js"></script>
+
+  <link href="/css/main.css" rel="stylesheet">
+
+  <title>Cumul.io Spotify list builder</title>
+</head>
+
+<body>
+  <div class="d-flex align-items-stretch w-100 h-100">
+    <div id="sidebar" class="d-flex flex-column h-100 text-white">
+      <!-- Company logo and name -->
+      <div class="company-logo px-5 py-3 mb-5 mt-4 w-100">
+        <img src="/assets/logo_with_text.svg" onclick="SpotifyApp.ui.toggleMenu(false)" />
+      </div>
+      <!-- menu list-->
+      <div class="pages small mt-5">
+        <ul id="menu-list" class="list-unstyled text-uppercase p-0">
+          <li class="menu-category small">
+            <span>Visualize</span>
+          </li>
+          <li class="menu-item active" menu-item="songs" onclick="SpotifyApp.openPageSongAnalytics()">
+            <i class="fas fa-music mr-3"></i>
+            <span>Song analytics</span>
+          </li>
+          <li menu-item="cumulio-playlist-viz" class="menu-item" onclick="SpotifyApp.openPageCumulioFavorites()">
+            <i class="fas fa-heart mr-3"></i>
+            <span>Cumul.io favorites</span>
+          </li>
+          <li menu-item="my-playlists-viz" class="menu-item guarded" onclick="SpotifyApp.openPageMyPlaylistsVisualized()">
+            <i class="fas fa-spa mr-3"></i>
+            <span>My playlists</span>
+            <div class="d-inline-block"><div class="login-btn-small">login</div></div>
+          </li>
+          <li class="menu-category small">
+            <span>Playlists</span>
+          </li>
+          <li menu-item="cumulio-playlist" class="menu-item" onclick="SpotifyApp.openPageCumulioPlaylist()">
+            <i class="fas fa-list mr-3"></i>
+            <span>Cumul.io playlist</span>
+          </li>
+          <li menu-item="my-playlists" class="menu-item guarded" onclick="SpotifyApp.openPageMyPlaylists()">
+            <i class="fas fa-list mr-3"></i>
+            <span>My playlists</span>
+            <div class="d-inline-block"><div class="login-btn-small">login</div></div>
+          </li>
+        </ul>
+      </div>
+      <div class="flex-fill"></div>
+      <div class="menu-item mb-5" menu-item="information" onclick="SpotifyApp.openPageInformation()">
+        <i class="fas fa-info-circle mr-3"></i>
+        <span>how we built it</span>
+      </div>
+      <div class="powered-by text-center p-3">
+        <div class="mb-2">Powered by</div>
+        <a target="_blank" href="https://www.cumul.io/">
+          <img src="assets/main_cumulio_logo_with_text.svg"/>
+        </a>
+      </div>
+    </div>
+    <!-- Dashboard container -->
+    <div class="main-container p-lg-5">
+      <div id="navbar" class="d-flex ">
+      </div>
+      <div class="d-flex align-items-center mb-5">
+        <img src="/assets/logo_color.svg" class="menu-toggle d-inline-block d-lg-none my-3 mr-3"
+          onclick="SpotifyApp.ui.toggleMenu(true)" />
+        <div id="page-title" class="flex-grow-1 font-weight-bold">Song visualized</div>
+        <div id="user-name"></div>
+        <div id="user" class="d-none ml-3">
+          <div id="user-letter"></div>
+          <img id="user-img" class="rounded-circle" />
+        </div>
+        <a id="login-btn" href="/login" class="d-none btn btn-primary">Log in</a>
+      </div>
+      <!-- Playlist selector -->
+      <div class="mb-5">
+        <div id="playlists-list" class="d-flex align-items-center flex-wrap">
+          <div class="clearfix"></div>
+        </div>
+      </div>
+      <div class="dashboard-outer-container">
+        <div id="dashboard-container"></div>
+      </div>
+    </div>
+    <div id="overlay" onclick="SpotifyApp.ui.toggleMenu(false)"></div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="playlist-modal" tabindex="-1" aria-labelledby="playlist-modal-label" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="playlist-modal-label">Add song to</h5>
+            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close" onclick="SpotifyApp.resetModalWidth()"></button>
+          </div>
+          <div class="modal-body">
+            <div id="add-to-playlists" class="row">
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Song Info Modal -->
+    <div class="modal fade" id="song-info-modal" tabindex="-1" aria-labelledby="song-info-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="song-info-modal-label"></h5>
+            <button type="button" class="btn-close" aria-label="Close" onclick="SpotifyApp.closeSongInfoModal()"></button>
+          </div>
+          <div class="modal-body">
+            <div id="song-info">
+              <div id="song-info-dashboard"></div>
+              <iframe id="song-player" width="100%" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="SpotifyApp.closeSongInfoModal()">Close</button>
+            <button id="add-song-btn" type="button" class="btn btn-primary">Add to playlist</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/main.js"></script>
+  <!-- using Font Awesome for this example -->
+  <script src="https://use.fontawesome.com/releases/v5.15.1/js/all.js" data-auto-replace-svg="nest"></script>
+</body>
+
+</html>
