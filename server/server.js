@@ -30,7 +30,7 @@ const generateRandomString = function (length) {
 
 // Serve static assets from the /public folder
 app
-  .use(express.static(join(__dirname, 'public')))
+  .use(express.static(join(__dirname, '../public')))
   .use(cors())
   .use(cookieParser())
   .use(bodyParser.json())
@@ -132,7 +132,7 @@ plugin.init(app);
 
 // Serve the index page for all other requests
 app.get('/*', (req, res) => {
-  res.sendFile(join(__dirname, 'index.html'));
+  res.sendFile(join(__dirname, '../public/index.html'));
 });
 
 // Listen on port 3000

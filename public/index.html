@@ -1,8 +1,8 @@
 <html>
 
 <head>
-  <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
 
   <!-- bootstrap -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css"
@@ -24,7 +24,7 @@
     <div id="sidebar" class="d-flex flex-column h-100 text-white">
       <!-- Company logo and name -->
       <div class="company-logo px-5 py-3 mb-5 mt-4 w-100">
-        <img src="/images/logo_with_text.svg" onclick="toggleMenu(false)" />
+        <img src="/assets/logo_with_text.svg" onclick="SpotifyApp.ui.toggleMenu(false)" />
       </div>
       <!-- menu list-->
       <div class="pages small mt-5">
@@ -32,15 +32,15 @@
           <li class="menu-category small">
             <span>Visualize</span>
           </li>
-          <li class="menu-item active" menu-item="songs" onclick="openPageSongAnalytics()">
+          <li class="menu-item active" menu-item="songs" onclick="SpotifyApp.openPageSongAnalytics()">
             <i class="fas fa-music mr-3"></i>
             <span>Song analytics</span>
           </li>
-          <li menu-item="cumulio-playlist-viz" class="menu-item" onclick="openPageCumulioFavorites()">
+          <li menu-item="cumulio-playlist-viz" class="menu-item" onclick="SpotifyApp.openPageCumulioFavorites()">
             <i class="fas fa-heart mr-3"></i>
             <span>Cumul.io favorites</span>
           </li>
-          <li menu-item="my-playlists-viz" class="menu-item guarded" onclick="openPageMyPlaylistsVisualized()">
+          <li menu-item="my-playlists-viz" class="menu-item guarded" onclick="SpotifyApp.openPageMyPlaylistsVisualized()">
             <i class="fas fa-spa mr-3"></i>
             <span>My playlists</span>
             <div class="d-inline-block"><div class="login-btn-small">login</div></div>
@@ -48,11 +48,11 @@
           <li class="menu-category small">
             <span>Playlists</span>
           </li>
-          <li menu-item="cumulio-playlist" class="menu-item" onclick="openPageCumulioPlaylist()">
+          <li menu-item="cumulio-playlist" class="menu-item" onclick="SpotifyApp.openPageCumulioPlaylist()">
             <i class="fas fa-list mr-3"></i>
             <span>Cumul.io playlist</span>
           </li>
-          <li menu-item="my-playlists" class="menu-item guarded" onclick="openPageMyPlaylists()">
+          <li menu-item="my-playlists" class="menu-item guarded" onclick="SpotifyApp.openPageMyPlaylists()">
             <i class="fas fa-list mr-3"></i>
             <span>My playlists</span>
             <div class="d-inline-block"><div class="login-btn-small">login</div></div>
@@ -60,14 +60,14 @@
         </ul>
       </div>
       <div class="flex-fill"></div>
-      <div class="menu-item mb-5" menu-item="information" onclick="openPageInformation()">
+      <div class="menu-item mb-5" menu-item="information" onclick="SpotifyApp.openPageInformation()">
         <i class="fas fa-info-circle mr-3"></i>
         <span>how we built it</span>
       </div>
       <div class="powered-by text-center p-3">
         <div class="mb-2">Powered by</div>
         <a target="_blank" href="https://www.cumul.io/">
-          <img src="images/main_cumulio_logo_with_text.svg"/>
+          <img src="assets/main_cumulio_logo_with_text.svg"/>
         </a>
       </div>
     </div>
@@ -76,8 +76,8 @@
       <div id="navbar" class="d-flex ">
       </div>
       <div class="d-flex align-items-center mb-5">
-        <img src="/images/logo_color.svg" class="menu-toggle d-inline-block d-lg-none my-3 mr-3"
-          onclick="ui.toggleMenu(true)" />
+        <img src="/assets/logo_color.svg" class="menu-toggle d-inline-block d-lg-none my-3 mr-3"
+          onclick="SpotifyApp.ui.toggleMenu(true)" />
         <div id="page-title" class="flex-grow-1 font-weight-bold">Song visualized</div>
         <div id="user-name"></div>
         <div id="user" class="d-none ml-3">
@@ -96,7 +96,7 @@
         <div id="dashboard-container"></div>
       </div>
     </div>
-    <div id="overlay" onclick="ui.toggleMenu(false)"></div>
+    <div id="overlay" onclick="SpotifyApp.ui.toggleMenu(false)"></div>
 
     <!-- Modal -->
     <div class="modal fade" id="playlist-modal" tabindex="-1" aria-labelledby="playlist-modal-label" aria-hidden="true">
@@ -104,7 +104,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="playlist-modal-label">Add song to</h5>
-            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close" onclick="resetModalWidth()"></button>
+            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close" onclick="SpotifyApp.resetModalWidth()"></button>
           </div>
           <div class="modal-body">
             <div id="add-to-playlists" class="row">
@@ -121,7 +121,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="song-info-modal-label"></h5>
-            <button type="button" class="btn-close" aria-label="Close" onclick="closeSongInfoModal()"></button>
+            <button type="button" class="btn-close" aria-label="Close" onclick="SpotifyApp.closeSongInfoModal()"></button>
           </div>
           <div class="modal-body">
             <div id="song-info">
@@ -130,14 +130,14 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeSongInfoModal()">Close</button>
+            <button type="button" class="btn btn-secondary" onclick="SpotifyApp.closeSongInfoModal()">Close</button>
             <button id="add-song-btn" type="button" class="btn btn-primary">Add to playlist</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <script type="module" src="/js/app.js"></script>
+  <script src="js/main.js"></script>
   <!-- using Font Awesome for this example -->
   <script src="https://use.fontawesome.com/releases/v5.15.1/js/all.js" data-auto-replace-svg="nest"></script>
 </body>

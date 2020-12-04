@@ -8,12 +8,12 @@ import {UI} from './ui.js';
 
 export const CUMULIO_PLAYLIST = '0GIFfPsuHdZUQGrGvKiXSm';
 const spotify = new Spotify();
-const ui = new UI(spotify);
+export const ui = new UI(spotify);
 
 let customEventsActive = false;
 let activeDashboard = null;
 
-export const dashboards = {
+const dashboards = {
   kaggle: '8edf0005-6493-48e1-9689-5740a1829cdd',
   playlist: 'b9254071-560a-4140-9d20-91ec388d35ab',
   cumulio: 'f3555bce-a874-4924-8d08-136169855807',
@@ -57,35 +57,35 @@ window.onload = async () => {
       else ui.setLoginStatus(true, response);
     });
 
-  window.openPageSongAnalytics();
+  openPageSongAnalytics();
 };
 
-window.closeSongInfoModal = () => ui.closeSongInfoModal();
-window.resetModalWidth = () => ui.resetModalWidth();
+export const closeSongInfoModal = () => ui.closeSongInfoModal();
+export const resetModalWidth = () => ui.resetModalWidth();
 
-window.openPageSongAnalytics = () => {
+export const openPageSongAnalytics = () => {
   toggleCustomEventListeners(true);
   ui.openPage(pageInfo.songs.title, pageInfo.songs.name);
   loadDashboard(dashboards.kaggle);
 };
 
-window.openPageCumulioFavorites = async () => {
+export const openPageCumulioFavorites = async () => {
   ui.openPage(pageInfo.cumulio_visualized.title, pageInfo.cumulio_visualized.name);
   toggleCustomEventListeners(true);
   loadDashboard(dashboards.cumulio);
 };
 
-window.openPageMyPlaylistsVisualized = async () => {
-  if (!spotify.user.loggedIn) return window.location.href = '/login';
+export const openPageMyPlaylistsVisualized = async () => {
+  if (!spotify.user.loggedIn) return location.href = '/login';
   ui.openPage(pageInfo.select_playlist.title, pageInfo.select_playlist.name);
   const playlists = await spotify.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
-  const container = ui.generatePlaylistCards(playlists, window.openPageVisualizePlaylist);
+  const container = ui.generatePlaylistCards(playlists, openPageVisualizePlaylist);
   playlistsEl.append(container);
 };
 
-window.openPageCumulioPlaylist = async () => {
+export const openPageCumulioPlaylist = async () => {
   ui.openPage(pageInfo.cumulio_playlist.title, pageInfo.cumulio_playlist.name);
   const playlistEl = await ui.generatePlaylistSongList({id: CUMULIO_PLAYLIST, name: 'Cumul.io Playlist'});
   const container = document.getElementById('playlists-list');
@@ -93,24 +93,24 @@ window.openPageCumulioPlaylist = async () => {
   container.append(playlistEl);
 };
 
-window.openPageMyPlaylists = async () => {
+export const openPageMyPlaylists = async () => {
   if (!spotify.user.loggedIn) return window.location.href = '/login';
   ui.openPage(pageInfo.my_playlist.title, pageInfo.my_playlist.name);
   const playlists = await spotify.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
-  const container = ui.generatePlaylistCards(playlists, window.openPagePlaylist);
+  const container = ui.generatePlaylistCards(playlists, openPagePlaylist);
   playlistsEl.append(container);
 };
 
-window.openPageVisualizePlaylist = async (playlist) => {
+export const openPageVisualizePlaylist = async (playlist) => {
   ui.openPage(playlist.name || 'Playlist', pageInfo.select_playlist.name);
   const token = await getDashboardAuthorizationToken({ playlistId: playlist.id });
   ui.removePlaylists();
   loadDashboard(dashboards.playlist, token.id, token.token);
 };
 
-window.openPagePlaylist = async (playlist) => {
+export const openPagePlaylist = async (playlist) => {
   ui.openPage(playlist.name || 'Playlist', pageInfo.my_playlist.name);
   removeDashboard();
   const playlistEl = await ui.generatePlaylistSongList(playlist);
@@ -119,7 +119,7 @@ window.openPagePlaylist = async (playlist) => {
   container.append(playlistEl);
 };
 
-window.openPageInformation = async () => {
+export const openPageInformation = async () => {
   ui.openPage(pageInfo.how.title, pageInfo.how.name);
   removeDashboard();
   const container = document.getElementById('playlists-list');
@@ -137,7 +137,7 @@ window.openPageInformation = async () => {
 
 */
 
-export const loadDashboard = (id, key, token, container) => {
+const loadDashboard = (id, key, token, container) => {
   dashboardOptions.dashboardId = id;
   dashboardOptions.container = container || '#dashboard-container';
   // use tokens if available
@@ -181,7 +181,10 @@ const toggleCustomEventListeners = (boolean) => {
         await ui.addToPlaylistSelector(song.name, song.id);
       }
       else if (event.data.event === 'song_info') {
-        await ui.displaySongInfo(song, event.dashboard);
+        const dashboardId = (event.dashboard === dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
+        const token = await getDashboardAuthorizationToken({ songId: [song.id] });
+        loadDashboard(dashboardId, token.id, token.token, '#song-info-dashboard');
+        await ui.displaySongInfo(song);
       }
     });
   }
@@ -189,7 +192,7 @@ const toggleCustomEventListeners = (boolean) => {
 };
 
 // Function to retrieve the dashboard authorization token from the platform's backend
-export const getDashboardAuthorizationToken = async (metadata) => {
+const getDashboardAuthorizationToken = async (metadata) => {
   try {
     const body = {
       access_token: spotify.spotifyParams.access_token,

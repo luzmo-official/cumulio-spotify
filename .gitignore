@@ -1,3 +1,4 @@
 node_modules
 .vscode
 .env
+public/js/main.js

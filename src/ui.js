@@ -1,4 +1,4 @@
-import {dashboards, removeDashboard, getDashboardAuthorizationToken, loadDashboard, CUMULIO_PLAYLIST} from './app.js';
+import {removeDashboard, CUMULIO_PLAYLIST} from './app.js';
 
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});
@@ -204,11 +204,8 @@ class UI {
     }
   }
 
-  async displaySongInfo(song, origin) {
+  async displaySongInfo(song) {
     const t = this;
-    const dashboardId = (origin === dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
-    const token = await getDashboardAuthorizationToken({ songId: [song.id] });
-    loadDashboard(dashboardId, token.id, token.token, '#song-info-dashboard');
     songInfoModal.show();
     const modalTitle = document.querySelector('#song-info-modal-label');
     const modalPlayer = document.getElementById('song-player');

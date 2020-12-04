@@ -1,3 +1,5 @@
+/* eslint-disable */ 
+
 const request = require('request');
 const spotify = require('./spotify');
 
@@ -20,7 +22,6 @@ class Plugin {
     console.log('plugin initialized');
     const t = this;
     app.get('/datasets', (req, res) => {
-      console.log("in /dataset");
       if (!process.env.LOCAL && req.headers['x-secret'] !== process.env.CUMULIO_SECRET)
         return res.status(403).end('Given plugin secret does not match Cumul.io plugin secret.');
       const datasets = [
@@ -58,7 +59,6 @@ class Plugin {
     }
     
     app.post('/query', (req, res) => {
-      console.log('got to /query');
       if (!process.env.LOCAL && req.headers['x-secret'] !== process.env.CUMULIO_SECRET)
         return res.status(403).end('Given plugin secret does not match Cumul.io plugin secret.');
       
