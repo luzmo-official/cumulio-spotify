@@ -116,7 +116,7 @@ class UI {
     songs.forEach((song) => {
       const itemEl = document.createElement('li');
       itemEl.classList.add('song-item', 'd-flex', 'w-100', 'align-items-center');
-      //itemEl.onclick = () => { ui.displaySongInfo(song, dashboards.cumulio); };
+      itemEl.onclick = () => { this.displaySongInfo(song); };
       itemEl.innerHTML = `
         <div class="song-img rounded"><img src="${song.image}"/></div>
         <div class="song-info flex-grow-1 flex-shrink-1 px-2">
