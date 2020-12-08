@@ -24,6 +24,10 @@ class Spotify {
 
   async makeSpotifyRequest(url, method){
     const t = this;
+    if (url !== 'https://api.spotify.com/v1/me' && !t.spotifyParams.access_token) {
+      window.location.href = '/login';
+      return;
+    }
     try {
       let res;
       do {
@@ -45,17 +49,19 @@ class Spotify {
     let response;
     do {
       response = await t.makeSpotifyRequest(`https://api.spotify.com/v1/users/${t.user.id}/playlists?limit=50`, 'get');
-      playlists = playlists.concat(response.items.map(item => {
-        return {
-          image: item.images.find(img => img.height === 300 || img.height > 300 || img.url !== null),
-          name: item.name,
-          tracks: item.tracks,
-          uri: item.uri,
-          id: item.id
-        };
-      }));
+      if (response) {
+        playlists = playlists.concat(response.items.map(item => {
+          return {
+            image: item.images.find(img => img.height === 300 || img.height > 300 || img.url !== null),
+            name: item.name,
+            tracks: item.tracks,
+            uri: item.uri,
+            id: item.id
+          };
+        }));
+      }
     }
-    while (!response.next === null);
+    while (response && !response.next === null);
     return playlists;
   }
 
