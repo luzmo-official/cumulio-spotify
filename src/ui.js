@@ -1,4 +1,4 @@
-import {removeDashboard, CUMULIO_PLAYLIST} from './app.js';
+import {removeDashboard} from './app.js';
 
 const playlistModal = new bootstrap.Modal(document.getElementById('playlist-modal'), {});
 const songInfoModal = new bootstrap.Modal(document.getElementById('song-info-modal'), {});

@@ -398,6 +398,10 @@ body {
     no-repeat center center/1em auto;
 }
 
+.modal {
+  z-index: 99999;
+}
+
 .modal-content {
   background: #253450;
 }

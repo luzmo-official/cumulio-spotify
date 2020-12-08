@@ -49,14 +49,47 @@ const dashboardOptions = {
 */
 
 window.onload = async () => {
-  spotify.spotifyParams = getHashParams();
   openPageSongAnalytics();
+  spotify.spotifyParams = getHashParams();
   if (!spotify.spotifyParams.access_token) return ui.setLoginStatus(false);
-  spotify.makeSpotifyRequest('https://api.spotify.com/v1/me', 'get')
+  await spotify.makeSpotifyRequest('https://api.spotify.com/v1/me', 'get')
     .then(response => {
       if (response.error) ui.setLoginStatus(false);
       else ui.setLoginStatus(true, response);
     });
+
+  if(spotify.spotifyParams.returnPage) {
+    switch (spotify.spotifyParams.returnPage) {
+    case 'my-playlists-viz':
+      openPageMyPlaylistsVisualized();
+      break;
+    case 'my-playlists':
+      openPageMyPlaylists();
+      break;
+    case 'cumulio-playlist-viz':
+      openPageCumulioFavorites();
+      break;
+    case 'cumulio-playlist':
+      openPageCumulioPlaylist();
+      break;
+    default:
+      openPageSongAnalytics();
+    }
+  }
+  if(spotify.spotifyParams.action) {
+    switch(spotify.spotifyParams.action) {
+    case 'addToPlaylist':
+      ui.addToPlaylistSelector(spotify.spotifyParams.songName, spotify.spotifyParams.songId);
+      break;
+    case 'songInfo':
+      loadSongInfoDashboard(
+        (spotify.spotifyParams.returnPage && spotify.spotifyParams.returnPage === 'cumulio-playlist-viz') ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo,
+        {name: spotify.spotifyParams.songName, id: spotify.spotifyParams.songId}
+      );
+      ui.displaySongInfo({name: spotify.spotifyParams.songName, id: spotify.spotifyParams.songId});
+      break;
+    }
+  }
 };
 
 export const closeSongInfoModal = () => ui.closeSongInfoModal();
@@ -70,13 +103,15 @@ export const openPageSongAnalytics = () => {
 
 export const openPageCumulioFavorites = async () => {
   ui.openPage(pageInfo.cumulio_visualized.title, pageInfo.cumulio_visualized.name);
+  setActivePage('cumulio_visualized');
   toggleCustomEventListeners(true);
   loadDashboard(dashboards.cumulio);
 };
 
 export const openPageMyPlaylistsVisualized = async () => {
-  if (!spotify.user.loggedIn) return location.href = '/login';
+  if (!spotify.spotifyParams.access_token) return location.href = '/login?returnPage=my-playlists-viz';
   ui.openPage(pageInfo.select_playlist.title, pageInfo.select_playlist.name);
+  setActivePage('select_playlist');
   const playlists = await spotify.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
@@ -86,6 +121,7 @@ export const openPageMyPlaylistsVisualized = async () => {
 
 export const openPageCumulioPlaylist = async () => {
   ui.openPage(pageInfo.cumulio_playlist.title, pageInfo.cumulio_playlist.name);
+  setActivePage('cumulio_playlist');
   const playlistEl = await ui.generatePlaylistSongList({id: CUMULIO_PLAYLIST, name: 'Cumul.io Playlist'}, openPageCumulioFavorites);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
@@ -93,8 +129,9 @@ export const openPageCumulioPlaylist = async () => {
 };
 
 export const openPageMyPlaylists = async () => {
-  if (!spotify.user.loggedIn) return window.location.href = '/login';
+  if (!spotify.user.loggedIn) return window.location.href = '/login?returnPage=my-playlists';
   ui.openPage(pageInfo.my_playlist.title, pageInfo.my_playlist.name);
+  setActivePage('my_playlist');
   const playlists = await spotify.getPlaylists();
   const playlistsEl = document.getElementById('playlists-list');
   playlistsEl.innerHTML = '';
@@ -176,14 +213,24 @@ const toggleCustomEventListeners = (boolean) => {
   else if (!customEventsActive && boolean) {
     Cumulio.onCustomEvent(async (event) => {
       const song = getSong(event);
+      const activePage = Object.values(pageInfo).find(page => page.isActive === true);
       if (event.data.event === 'add_to_playlist') {
-        await ui.addToPlaylistSelector(song.name, song.id);
+        if (!spotify.spotifyParams.access_token) {
+          return window.location.href = `/login?returnPage=${activePage ? activePage.name : ''}&songId=${song.id}&songName=${song.name}&action=addToPlaylist`;
+        }
+        else {
+          await ui.addToPlaylistSelector(song.name, song.id);
+        }
       }
       else if (event.data.event === 'song_info') {
-        const dashboardId = (event.dashboard === dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
-        const token = await getDashboardAuthorizationToken({ songId: [song.id] });
-        loadDashboard(dashboardId, token.id, token.token, '#song-info-dashboard');
-        await ui.displaySongInfo(song);
+        if (!spotify.spotifyParams.access_token) {
+          return window.location.href = `/login?returnPage=${activePage ? activePage.name : ''}&songId=${song.id}&songName=${song.name}&action=songInfo`;
+        }
+        else {
+          const dashboardId = (event.dashboard === dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
+          loadSongInfoDashboard(dashboardId, song);
+          await ui.displaySongInfo(song);
+        }
       }
     });
   }
@@ -221,6 +268,11 @@ const getDashboardAuthorizationToken = async (metadata) => {
   }
 };
 
+const loadSongInfoDashboard = async (dashboard, song) => {
+  const token = await getDashboardAuthorizationToken({ songId: [song.id] });
+  loadDashboard(dashboard, token.id, token.token, '#song-info-dashboard');
+};
+
 /* 
   
   HELPER FUNCTIONS
@@ -238,3 +290,12 @@ function getHashParams() {
   }
   return hashParams;
 }
+
+const setActivePage = (id) => {
+  Object.values(pageInfo).forEach(page => {
+    page.isActive = false;
+  });
+  if (pageInfo[id]) {
+    pageInfo[id].isActive = true;
+  }
+};

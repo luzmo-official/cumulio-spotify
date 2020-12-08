@@ -42,7 +42,11 @@ app
   });
 
 app.get('/login', function (req, res) {
-  const state = generateRandomString(16);
+  let state = { secret: generateRandomString(16) };
+  Object.keys(req.query).forEach(key => {
+    state[key] = req.query[key];
+  });
+  state = JSON.stringify(state);
   res.cookie(stateKey, state);
   spotify.login(state, res);
 });
@@ -65,16 +69,21 @@ app.get('/callback', function (req, res) {
   // your application requests refresh and access tokens
   // after checking the state parameter
   const code = req.query.code || null;
-  const state = req.query.state || null;
-  const storedState = req.cookies ? req.cookies[stateKey] : null;
+  const state = JSON.parse(req.query.state) || null;
+  const storedState = req.cookies ? JSON.parse(req.cookies[stateKey]) : null;
 
-  if (state === null || state !== storedState) {
+  if (state.secret === null || state.secret !== storedState.secret) {
     res.redirect('/#' + querystring.stringify({ error: 'state_mismatch' }));
   }
   else {
     res.clearCookie(stateKey);
     spotify.exchangeToken(code)
       .then(credentials => {
+        Object.keys(state).forEach(key => {
+          if(key !== 'secret') {
+            credentials[key] = state[key];
+          }
+        });
         res.redirect('/#' + querystring.stringify(credentials));
       })
       .catch(() => {
