@@ -24,7 +24,7 @@
     <div id="sidebar" class="d-flex flex-column h-100 text-white">
       <!-- Company logo and name -->
       <div class="company-logo px-5 py-3 mb-5 mt-4 w-100">
-        <img src="/assets/logo_with_text.svg" onclick="SpotifyApp.ui.toggleMenu(false)" />
+        <img src="/assets/logo_with_text.svg"/>
       </div>
       <!-- menu list-->
       <div class="pages small mt-5">
@@ -75,22 +75,20 @@
     <div class="main-container p-lg-5">
       <div id="navbar" class="d-flex ">
       </div>
-      <div class="d-flex align-items-center mb-5">
+      <div class="d-flex align-items-center mb-lg-5">
         <img src="/assets/logo_color.svg" class="menu-toggle d-inline-block d-lg-none my-3 mr-3"
           onclick="SpotifyApp.ui.toggleMenu(true)" />
-        <div id="page-title" class="flex-grow-1 font-weight-bold">Song visualized</div>
+        <div id="page-title" class="flex-grow-1 text-truncate font-weight-bold">Song visualized</div>
         <div id="user-name"></div>
-        <div id="user" class="d-none ml-3">
+        <div id="user" class="d-none ml-3 mr-3 mr-lg-0">
           <div id="user-letter"></div>
           <img id="user-img" class="rounded-circle" />
         </div>
         <a id="login-btn" href="/login" class="d-none btn btn-primary">Log in</a>
       </div>
       <!-- Playlist selector -->
-      <div class="mb-5">
-        <div id="playlists-list" class="d-flex align-items-center flex-wrap">
-          <div class="clearfix"></div>
-        </div>
+      <div id="playlists-list" class="d-flex align-items-center flex-wrap">
+        <div class="clearfix"></div>
       </div>
       <div class="dashboard-outer-container">
         <div id="dashboard-container"></div>
@@ -100,7 +98,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="playlist-modal" tabindex="-1" aria-labelledby="playlist-modal-label" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="playlist-modal-label">Add song to</h5>
@@ -117,7 +115,7 @@
 
     <!-- Song Info Modal -->
     <div class="modal fade" id="song-info-modal" tabindex="-1" aria-labelledby="song-info-modal-label" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="song-info-modal-label"></h5>
