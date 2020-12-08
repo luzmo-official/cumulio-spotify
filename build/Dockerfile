@@ -16,7 +16,6 @@ RUN npm ci --only=production
 # Bundle app source
 ADD artifacts/backend.tar.gz ./
 ADD artifacts/frontend.tar.gz ./
-COPY artifacts/.env ./
 
 EXPOSE 3000
 CMD [ "dumb-init", "node", "server/server.js" ]
