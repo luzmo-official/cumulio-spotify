@@ -97,7 +97,7 @@ class UI {
     containerEl.classList.add('w-100', 'text-right');
     const visualizeButtonEl = document.createElement('button');
     visualizeButtonEl.classList.add('btn', 'btn-primary', 'mb-3');
-    visualizeButtonEl.onclick = () => callback(playlist.id);
+    visualizeButtonEl.onclick = () => callback(playlist);
     visualizeButtonEl.innerText = 'Visualize';
     containerEl.append(visualizeButtonEl);
     const headerEl = document.createElement('div');
