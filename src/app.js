@@ -86,7 +86,7 @@ export const openPageMyPlaylistsVisualized = async () => {
 
 export const openPageCumulioPlaylist = async () => {
   ui.openPage(pageInfo.cumulio_playlist.title, pageInfo.cumulio_playlist.name);
-  const playlistEl = await ui.generatePlaylistSongList({id: CUMULIO_PLAYLIST, name: 'Cumul.io Playlist'});
+  const playlistEl = await ui.generatePlaylistSongList({id: CUMULIO_PLAYLIST, name: 'Cumul.io Playlist'}, openPageCumulioFavorites);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);
@@ -112,7 +112,7 @@ export const openPageVisualizePlaylist = async (playlist) => {
 export const openPagePlaylist = async (playlist) => {
   ui.openPage(playlist.name || 'Playlist', pageInfo.my_playlist.name);
   removeDashboard();
-  const playlistEl = await ui.generatePlaylistSongList(playlist);
+  const playlistEl = await ui.generatePlaylistSongList(playlist, openPageVisualizePlaylist);
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
   container.append(playlistEl);

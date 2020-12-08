@@ -91,13 +91,13 @@ class UI {
     return container;
   }
   
-  async generatePlaylistSongList(playlist) {
+  async generatePlaylistSongList(playlist, callback) {
     const t = this;
     const containerEl = document.createElement('div');
     containerEl.classList.add('w-100', 'text-right');
     const visualizeButtonEl = document.createElement('button');
     visualizeButtonEl.classList.add('btn', 'btn-primary', 'mb-3');
-    visualizeButtonEl.onclick = () => playlist.id === CUMULIO_PLAYLIST ?  window.openPageCumulioFavorites() : window.openPageVisualizePlaylist(playlist.id);
+    visualizeButtonEl.onclick = () => callback(playlist.id);
     visualizeButtonEl.innerText = 'Visualize';
     containerEl.append(visualizeButtonEl);
     const headerEl = document.createElement('div');
