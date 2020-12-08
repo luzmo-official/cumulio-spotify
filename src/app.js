@@ -14,8 +14,8 @@ let customEventsActive = false;
 let activeDashboard = null;
 
 const dashboards = {
-  kaggle: '8edf0005-6493-48e1-9689-5740a1829cdd',
-  playlist: 'b9254071-560a-4140-9d20-91ec388d35ab',
+  kaggle: 'd74d8bdb-ff3e-4f7d-b07b-4e52a09be21c',
+  playlist: 'a5c499f1-55d5-434e-a413-7899b080ed70',
   cumulio: 'e941e189-bb8f-4f13-91e3-97e5339d4fc5',
   cumulio_songInfo: 'e92c869c-2a94-406f-b18f-d691fd627d34',
   kaggle_songInfo: '3f5d2cb6-9a8a-43e4-83d4-9c3dae66a194'
