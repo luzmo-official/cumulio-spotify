@@ -1,7 +1,7 @@
 const request = require('request');
 const querystring = require('querystring');
 
-const redirect = 'http://localhost:3000/callback';
+const redirect = process.env.SPOTIFY_REDIRECT_URI;
 const scopes = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-public playlist-modify-private';
 
 class Spotify {

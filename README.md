@@ -25,6 +25,7 @@ This project is a demonstration of how Cumul.io `Custom Events` can be used for 
  ```
  SPOTIFY_CLIENT_ID=xxx
  SPOTIFY_CLIENT_SECRET=xxx
+ SPOTIFY_REDIRECT_URI=xxx
  ACCESS_TOKEN=xxx
  REFRESH_TOKEN=xxx
  ```
