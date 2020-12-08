@@ -50,13 +50,11 @@ const dashboardOptions = {
 
 window.onload = async () => {
   spotify.spotifyParams = getHashParams();
-  if (!spotify.spotifyParams.access_token) return ui.setLoginStatus(false);
   spotify.makeSpotifyRequest('https://api.spotify.com/v1/me', 'get')
     .then(response => {
       if (response.error) ui.setLoginStatus(false);
       else ui.setLoginStatus(true, response);
     });
-
   openPageSongAnalytics();
 };
 
