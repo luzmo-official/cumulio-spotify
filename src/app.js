@@ -5,6 +5,7 @@
 */
 import {Spotify} from './spotify.js';
 import {UI} from './ui.js';
+import html from './howto.html';
 
 export const CUMULIO_PLAYLIST = '0GIFfPsuHdZUQGrGvKiXSm';
 const spotify = new Spotify();
@@ -159,12 +160,7 @@ export const openPageInformation = async () => {
   ui.openPage(pageInfo.how.title, pageInfo.how.name);
   removeDashboard();
   const container = document.getElementById('playlists-list');
-  container.innerHTML = `
-    <div class="d-block">
-      <div>Lorum ipsum... blood sweat & tears and ...</div>
-      <div>Spotify API</div>
-    </div>
-  `;
+  container.innerHTML = html;
 };
 
 /* 

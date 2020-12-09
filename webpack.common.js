@@ -13,4 +13,12 @@ module.exports = {
     path: path.resolve(__dirname, 'public/js'),
     library: 'SpotifyApp'
   },
+  module: {
+    rules: [
+      { 
+        test: /\.html$/i,
+        loader: 'html-loader',
+      },
+    ],
+  }
 };
