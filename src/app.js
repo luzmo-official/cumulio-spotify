@@ -13,6 +13,7 @@ export const ui = new UI(spotify);
 
 let customEventsActive = false;
 let activeDashboard = null;
+let activePlaylist = null;
 
 const dashboards = {
   kaggle: 'd74d8bdb-ff3e-4f7d-b07b-4e52a09be21c',
@@ -144,6 +145,7 @@ export const openPageMyPlaylists = async () => {
 export const openPageVisualizePlaylist = async (playlist) => {
   ui.openPage(playlist.name || 'Playlist', pageInfo.select_playlist.name);
   const token = await getDashboardAuthorizationToken({ playlistId: playlist.id });
+  activePlaylist = playlist.id;
   ui.removePlaylists();
   loadDashboard(dashboards.playlist, token.id, token.token);
 };
@@ -266,7 +268,11 @@ const getDashboardAuthorizationToken = async (metadata) => {
 };
 
 const loadSongInfoDashboard = async (dashboard, song) => {
-  const token = await getDashboardAuthorizationToken({ songId: [song.id] });
+  const metadata = {
+    songId: [song.id],
+    playlistId: activePlaylist
+  };
+  const token = await getDashboardAuthorizationToken(metadata);
   loadDashboard(dashboard, token.id, token.token, '#song-info-dashboard');
 };
 
