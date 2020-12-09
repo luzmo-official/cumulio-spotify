@@ -19,7 +19,8 @@ const dashboards = {
   playlist: 'a5c499f1-55d5-434e-a413-7899b080ed70',
   cumulio: 'e941e189-bb8f-4f13-91e3-97e5339d4fc5',
   cumulio_songInfo: 'e92c869c-2a94-406f-b18f-d691fd627d34',
-  kaggle_songInfo: '3f5d2cb6-9a8a-43e4-83d4-9c3dae66a194'
+  kaggle_songInfo: '3f5d2cb6-9a8a-43e4-83d4-9c3dae66a194',
+  playlist_songInfo: 'ed387b31-9816-47e2-94eb-252725b4c049'
 };
 
 const pageInfo = {
@@ -223,7 +224,7 @@ const toggleCustomEventListeners = (boolean) => {
           return window.location.href = `/login?returnPage=${activePage ? activePage.name : ''}&songId=${song.id}&songName=${song.name}&action=songInfo`;
         }
         else {
-          const dashboardId = (event.dashboard === dashboards.cumulio) ? dashboards.cumulio_songInfo : dashboards.kaggle_songInfo;
+          const dashboardId = (event.dashboard === dashboards.cumulio) ? dashboards.cumulio_songInfo : event.dashboard === dashboards.playlist ? dashboards.playlist_songInfo : dashboards.kaggle_songInfo;
           loadSongInfoDashboard(dashboardId, song);
           await ui.displaySongInfo(song);
         }
