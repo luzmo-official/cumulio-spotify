@@ -25,12 +25,12 @@ const dashboards = {
 };
 
 const pageInfo = {
-  songs: {title: 'Songs visualized' , name: 'songs'},
-  cumulio_visualized: {title: 'Cumul.io playlist visualized', name: 'cumulio-playlist-viz'},
-  cumulio_playlist: {title: 'Cumul.io playlist', name: 'cumulio-playlist'},
+  songs: {title: 'Find the Perfect Song' , name: 'songs'},
+  cumulio_visualized: {title: 'Cumul.io Playlist Visualized', name: 'cumulio-playlist-viz'},
+  cumulio_playlist: {title: 'Cumul.io Playlist', name: 'cumulio-playlist'},
   select_playlist: {title: 'Select a playlist to visualize', name: 'my-playlists-viz'},
   my_playlist: {title: 'My Playlists', name: 'my-playlists'},
-  how: {title: 'How we built it?', name: 'information'}
+  how: {title: 'How We Built it', name: 'information'}
     
 };
 
@@ -143,7 +143,7 @@ export const openPageMyPlaylists = async () => {
 };
 
 export const openPageVisualizePlaylist = async (playlist) => {
-  ui.openPage(playlist.name || 'Playlist', pageInfo.select_playlist.name);
+  ui.openPage(`Visualized: ${playlist.name || 'Playlist'}`, pageInfo.select_playlist.name);
   const token = await getDashboardAuthorizationToken({ playlistId: playlist.id });
   activePlaylist = playlist.id;
   ui.removePlaylists();
