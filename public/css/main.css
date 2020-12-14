@@ -58,9 +58,15 @@ body {
 
 #page-title {
   opacity: 0.8;
-  font-size: 2rem;
+  font-size: 1.4rem;
   line-height: 3rem;
   white-space: nowrap;
+}
+
+@media (min-width: 992px) {
+  #page-title {
+    font-size: 2rem;
+  }
 }
 
 .dashboard-outer-container {
