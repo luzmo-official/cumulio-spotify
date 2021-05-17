@@ -53,7 +53,7 @@ class Spotify {
         playlists = playlists.concat(response.items.map(item => {
           return {
             image: item.images.find(img => img.height === 300 || img.height > 300 || img.url !== null),
-            name: item.name,
+            name: filterXSS(item.name),
             tracks: item.tracks,
             uri: item.uri,
             id: item.id
@@ -78,9 +78,9 @@ class Spotify {
         const trackImage = album && album.images && album.images.find((img) => img.height === 64) ? album.images.find((img) => img.height === 64).url : null;
         return {
           id: track.id,
-          name: track.name,
-          artist: artists.length > 0 ? artists.map((a) => a.name).join(', ') : 'Unknown',
-          album: track.album.name,
+          name: filterXSS(track.name),
+          artist: artists.length > 0 ? artists.map((a) => filterXSS(a.name)).join(', ') : 'Unknown',
+          album: filterXSS(track.album.name),
           releaseYear: album.release_date ? album.release_date.substring(0, 4) : 'Unknown',
           explicit: track.explicit,
           isPlayable: track.is_playable,
