@@ -17,6 +17,12 @@ RUN npm ci --only=production
 ADD artifacts/backend.tar.gz ./
 ADD artifacts/frontend.tar.gz ./
 
+ENV PORT=3030
+ENV CUMULIO_API_KEY=XXX
+ENV CUMULIO_API_TOKEN=XXX
+ENV SPOTIFY_CLIENT_ID=XXX
+ENV SPOTIFY_CLIENT_SECRET=XXX
+ENV SPOTIFY_REDIRECT_URI=XXXX
 EXPOSE 3000
+
 CMD [ "dumb-init", "node", "server/server.js" ]
-# CMD ["bash"]
