@@ -2,7 +2,7 @@ html,
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  background: url("https://thumbs.gfycat.com/AdoredWindingIberianbarbel-max-1mb.gif") !important; /*#111b31;*/
+  background: #111b31;
   color: #fff;
 }
 
@@ -72,9 +72,8 @@ body {
 .dashboard-outer-container {
   flex: 1 1 auto;
   padding: 1rem;
-  background: url("https://thumbs.gfycat.com/AdoredWindingIberianbarbel-max-1mb.gif") !important;
-  /* background-color:  #111b31; */
-  /* overflow: auto; */
+  background-color:  #111b31;
+  overflow: auto;
 }
 
 /* Sidebar styling */
@@ -123,12 +122,12 @@ body {
 
 .menu-item.active,
 #sidebar li.active {
-  color: #0f8a5f; /*#18c659;*/
+  color: #18c659;
   padding-left: 2.5rem;
 }
 
 #sidebar li.active:after {
-  background: #0f8a5f; /*#18c659;*/
+  background: #18c659;
   width: 0.2rem;
   height: 2.5rem;
   left: 0rem;
@@ -136,7 +135,7 @@ body {
 }
 
 #sidebar li.menu-category {
-  color: #cc231e !important; /*#f44069*/
+  color:  #f44069;
   cursor: default;
 }
 
@@ -389,8 +388,8 @@ body {
 
 /* bootstrap overrides */
 .btn.btn-primary {
-  background-color: #0f8a5f; /*#18c659;*/
-  border-color: #0f8a5f; /*#18c659;*/
+  background-color: #18c659;
+  border-color: #18c659;
 }
 .btn-primary:focus {
   box-shadow: 0 0 0 0.25rem hsla(142, 74%, 35%, 0.5) !important;
@@ -416,4 +415,9 @@ body {
 .modal-header,
 .modal-footer {
   border-color: rgba(255, 255, 255, 0.1);
+}
+
+.row {
+  width: 100%;
+  margin-left: 0;
 }

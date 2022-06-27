@@ -26,10 +26,8 @@ const dashboards = {
 
 const pageInfo = {
   songs: {title: 'Find the Perfect Song' , name: 'songs'},
-  cumulio_visualized: {title: 'The Best Christmas Songs Visualized', name: 'cumulio-playlist-viz'},
-  // cumulio_visualized: {title: 'Cumul.io Playlist Visualized', name: 'cumulio-playlist-viz'},
-  cumulio_playlist: {title: 'Christmas Playlist', name: 'cumulio-playlist'},
-  // cumulio_playlist: {title: 'Cumul.io Playlist', name: 'cumulio-playlist'},
+  cumulio_visualized: {title: 'The 2022 Festival Songs Visualized', name: 'cumulio-playlist-viz'},
+  cumulio_playlist: {title: 'Werchter Line Up 2022', name: 'cumulio-playlist'},
   select_playlist: {title: 'Select a playlist to visualize', name: 'my-playlists-viz'},
   my_playlist: {title: 'My Playlists', name: 'my-playlists'},
   how: {title: 'How We Built it', name: 'information'}

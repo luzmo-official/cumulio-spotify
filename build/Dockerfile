@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:16
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -17,7 +17,7 @@ RUN npm ci --only=production
 ADD artifacts/backend.tar.gz ./
 ADD artifacts/frontend.tar.gz ./
 
-ENV PORT=3030
+ENV PORT=3000
 ENV CUMULIO_API_KEY=XXX
 ENV CUMULIO_API_TOKEN=XXX
 ENV SPOTIFY_CLIENT_ID=XXX
